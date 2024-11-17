@@ -22,5 +22,12 @@ jobs:
           version: 2                         # default
           verbose: false                     # default
           arch: amd64                        # allowed values: amd64, arm64
-      - run: aws --version
-        shell: bash
+      - name: Deploy with CloudFormation
+        id: cfn-stack
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          name: cloudformation
+          template: stack.yml
+          no-fail-on-empty-changeset: "1"
+          parameter-overrides: >-
+            Environment=beta
