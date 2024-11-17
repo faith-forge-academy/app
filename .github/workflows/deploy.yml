@@ -1,6 +1,6 @@
 on: [push, workflow_dispatch]
 jobs:
-  aws_cdk:
+  aws:
     permissions:
       id-token: write
       contents: read
