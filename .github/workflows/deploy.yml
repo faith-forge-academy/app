@@ -14,5 +14,5 @@ jobs:
       - name: Configure AWS credentials from Test account
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          role-to-assume: arn:aws:iam::${AWS_ACCOUNT_ID}:role/gh-actions-role
+          role-to-assume: arn:aws:iam::${{AWS_ACCOUNT_ID}}:role/gh-actions-role
           aws-region: us-east-1
