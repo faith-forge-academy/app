@@ -1,0 +1,95 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: A template for static hosting using S3 bucket and CloudFront
+
+Parameters:
+  Environment:
+    Type: String
+    Default: beta
+    AllowedValues:
+      - beta
+      - prod
+
+Mappings:
+  Config:
+    beta:
+      BucketName: beta.faithforge.academy
+      DomainName: beta.faithforge.academy
+      Cert: arn:aws:acm:us-east-1:525665562974:certificate/c802f44e-4271-40b7-aa6d-518d92da6698
+    prod:
+      BucketName: app.faithforge.academy
+      DomainName: app.faithforge.academy
+      Cert: arn:aws:acm:us-east-1:525665562974:certificate/c802f44e-4271-40b7-aa6d-518d92da6698
+
+Resources:
+  S3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      AccessControl: Private
+      BucketName: !FindInMap [Config, !Ref Environment, BucketName]
+
+  CloudFrontDistribution:
+    Type: AWS::CloudFront::Distribution
+    DependsOn:
+      - S3Bucket
+    Properties:
+      DistributionConfig:
+        Origins:
+          - DomainName: !GetAtt S3Bucket.RegionalDomainName
+            Id: static-hosting
+            S3OriginConfig:
+              OriginAccessIdentity: ""
+            OriginAccessControlId: !GetAtt CloudFrontOriginAccessControl.Id
+        Enabled: "true"
+        DefaultRootObject: index.html
+        CustomErrorResponses:
+          - ErrorCode: 404
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+          - ErrorCode: 403
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+        HttpVersion: http2
+        Aliases:
+          - !FindInMap [Config, !Ref Environment, DomainName]
+        ViewerCertificate:
+          AcmCertificateArn: !FindInMap [Config, !Ref Environment, Cert]
+          MinimumProtocolVersion: TLSv1.2_2021
+          SslSupportMethod: sni-only
+        DefaultCacheBehavior:
+          AllowedMethods:
+            - DELETE
+            - GET
+            - HEAD
+            - OPTIONS
+            - PATCH
+            - POST
+            - PUT
+          Compress: true
+          TargetOriginId: static-hosting
+          ForwardedValues:
+            QueryString: "false"
+            Cookies:
+              Forward: none
+          ViewerProtocolPolicy: redirect-to-https
+
+  BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !FindInMap [Config, !Ref Environment, BucketName]
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: "cloudfront.amazonaws.com"
+            Action: "s3:GetObject"
+            Resource: !Sub "${S3Bucket.Arn}/*"
+            Condition:
+              StringEquals:
+                AWS:SourceArn: !Sub "arn:aws:cloudfront::Id-of-IAM-User:distribution/${CloudFrontDistribution}"
+
+Outputs:
+  CloudFrontDist:
+    Value: !Ref CloudFrontDistribution
+  S3BucketName:
+    Value: !Ref S3Bucket
