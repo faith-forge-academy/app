@@ -1,0 +1,18 @@
+on: [push, workflow_dispatch]
+jobs:
+  aws_cdk:
+    permissions:
+      id-token: write
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+      - uses: actions/setup-node@v2
+        with:
+          node-version: "20"
+      - name: Configure AWS credentials from Test account
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: arn:aws:iam::${AWS_ACCOUNT_ID}:role/gh-actions-role
+          aws-region: us-east-1
