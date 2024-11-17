@@ -90,7 +90,7 @@ Resources:
           - Effect: Deny
             Principal: '*'
             Action: 's3:*'
-            Resources:
+            Resource:
               - !Sub "${S3Bucket.Arn}/*"
               - !Sub "${S3Bucket.Arn}"
             Condition:
