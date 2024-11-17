@@ -87,6 +87,25 @@ Resources:
             Condition:
               StringEquals:
                 AWS:SourceArn: !Sub "arn:aws:cloudfront::Id-of-IAM-User:distribution/${CloudFrontDistribution}"
+          - Effect: Deny
+            Principal: '*'
+            Action: 's3:*'
+            Resources:
+              - !Sub "${S3Bucket.Arn}/*"
+              - !Sub "${S3Bucket.Arn}"
+            Condition:
+              Bool:
+                aws:SecureTransport: false
+
+  CloudFrontOriginAccessControl:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties:
+      OriginAccessControlConfig:
+        Description: Default Origin Access Control
+        Name: !Ref AWS::StackName
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
 
 Outputs:
   CloudFrontDist:
