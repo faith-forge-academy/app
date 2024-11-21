@@ -9,11 +9,13 @@ import CardActions from '@mui/material/CardActions';
 import CardHeader from '@mui/material/CardHeader';
 import CardContent from '@mui/material/CardContent';
 
-// import { CardDescription, CardTitle, CardFooter } from "@/components/ui/card"
+// import { CardDescription, CardTitle, CardActions } from "@/components/ui/card"
 
 import Tabs from '@mui/material/Tabs';
+import Box from '@mui/material/Box';
+
 //TODO: Fix tabs
-// import { TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+// import { CustomTabPanel, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 //TODO: Does MUI have a Textarea component???
 // import { Textarea } from "@/components/ui/textarea"
@@ -38,6 +40,30 @@ function compareWords(original: string, spoken: string): { correct: boolean; wor
     correct: index < spokenWords.length && word === spokenWords[index],
     word: word
   }))
+}
+
+
+function CustomTabPanel(props) {
+  const { children, value, index, ...other } = props;
+
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`simple-tabpanel-${index}`}
+      aria-labelledby={`simple-tab-${index}`}
+      {...other}
+    >
+      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
+    </div>
+  );
+}
+
+function a11yProps(index) {
+  return {
+    id: `simple-tab-${index}`,
+    'aria-controls': `simple-tabpanel-${index}`,
+  };
 }
 
 export default function Study() {
@@ -117,33 +143,30 @@ export default function Study() {
   return (
     <Card className="w-full max-w-3xl mx-auto">
       <CardHeader>
-        <CardTitle>Scripture Learning</CardTitle>
-        <CardDescription>Read, practice, and test your scripture knowledge</CardDescription>
+        Scripture Learning
+        Read, practice, and test your scripture knowledge
       </CardHeader>
       <CardContent>
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="read">Read</TabsTrigger>
-            <TabsTrigger value="practice">Practice</TabsTrigger>
-            <TabsTrigger value="test">Test</TabsTrigger>
-          </TabsList>
-          <TabsContent value="read">
+            <Tabs label="Read" {...a11yProps(0)} />
+            <Tabs label="Practice" {...a11yProps(1)} />
+            <Tabs label="Test" {...a11yProps(2)} />
+        </Tabs>
+          <CustomTabPanel value={activeTab} index={0}> 
             <Card>
               <CardHeader>
-                <CardTitle>{scripture.reference}</CardTitle>
+                {scripture.reference}
               </CardHeader>
               <CardContent>
-                <ScrollArea className="h-[300px] w-full rounded-md border p-4">
                   <p>{scripture.text}</p>
-                </ScrollArea>
               </CardContent>
             </Card>
-          </TabsContent>
-          <TabsContent value="practice">
+          </CustomTabPanel>
+          <CustomTabPanel value={activeTab} index={1}>
             <Card>
               <CardHeader>
-                <CardTitle>Word-by-Word Practice</CardTitle>
-                <CardDescription>Practice the scripture word by word</CardDescription>
+                Word-by-Word Practice
+                Practice the scripture word by word
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -167,7 +190,6 @@ export default function Study() {
                     {isListening ? <MicOff className="mr-2 h-4 w-4" /> : <Mic className="mr-2 h-4 w-4" />}
                     {isListening ? "Stop" : "Start"} Listening
                   </Button>
-                  <ScrollArea className="h-[200px] w-full rounded-md border p-4">
                     {practiceResult.map((result, index) => (
                       <span
                         key={index}
@@ -178,16 +200,15 @@ export default function Study() {
                         {result.word}
                       </span>
                     ))}
-                  </ScrollArea>
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
-          <TabsContent value="test">
+          </CustomTabPanel>
+          <CustomTabPanel value={activeTab} index={2}>
             <Card>
               <CardHeader>
-                <CardTitle>Memorization Test</CardTitle>
-                <CardDescription>Type or speak the scripture from memory and check your accuracy</CardDescription>
+                Memorization Test
+                Type or speak the scripture from memory and check your accuracy
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -224,15 +245,14 @@ export default function Study() {
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
-        </Tabs>
+          </CustomTabPanel>
       </CardContent>
-      <CardFooter className="flex justify-between">
+      <CardActions className="flex justify-between">
         <Button variant="outline" onClick={() => setActiveTab("read")}>Back to Reading</Button>
         <Button onClick={() => setActiveTab(activeTab === "read" ? "practice" : activeTab === "practice" ? "test" : "read")}>
           Next Mode
         </Button>
-      </CardFooter>
+      </CardActions>
     </Card>
   );
 }
