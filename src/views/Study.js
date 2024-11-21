@@ -212,12 +212,8 @@ export default function Study() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <Textarea
-                    placeholder="Type the scripture here..."
-                    value={testSubmission}
-                    onChange={(e) => setTestSubmission(e.target.value)}
-                    className="min-h-[100px]"
-                  />
+
+                <textarea placeholder="type the scripture here..." onChange={(e) => {setTestSubmission(e.target.value)}} className="min-h-[100px]">{{testSubmission}}</textarea>
                   <div className="flex justify-between">
                     <Button onClick={toggleListening} variant="outline">
                       {isListening ? <MicOff className="mr-2 h-4 w-4" /> : <Mic className="mr-2 h-4 w-4" />}
@@ -228,8 +224,6 @@ export default function Study() {
                       Check Answer
                     </Button>
                   </div>
-                  {testResult.length > 0 && (
-                    <ScrollArea className="h-[200px] w-full rounded-md border p-4 mt-4">
                       {testResult.map((result, index) => (
                         <span
                           key={index}
@@ -240,8 +234,6 @@ export default function Study() {
                           {result.word}
                         </span>
                       ))}
-                    </ScrollArea>
-                  )}
                 </div>
               </CardContent>
             </Card>
