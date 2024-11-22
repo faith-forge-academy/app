@@ -3,25 +3,12 @@ import React from "react";
 import { useState, useEffect, useRef } from "react"
 
 import Button from '@mui/material/Button';
-
 import Card from '@mui/material/Card';
 import CardActions from '@mui/material/CardActions';
 import CardHeader from '@mui/material/CardHeader';
 import CardContent from '@mui/material/CardContent';
-
-// import { CardDescription, CardTitle, CardActions } from "@/components/ui/card"
-
 import Tabs from '@mui/material/Tabs';
 import Box from '@mui/material/Box';
-
-//TODO: Fix tabs
-// import { CustomTabPanel, TabsList, TabsTrigger } from "@/components/ui/tabs"
-
-//TODO: Does MUI have a Textarea component???
-// import { Textarea } from "@/components/ui/textarea"
-
-//TODO:: Does MUI have a ScrollArea component???
-// import { ScrollArea } from "@/components/ui/scroll-area"
 
 
 import { Mic, MicOff, Check, ArrowRight, ArrowLeft } from "lucide-react"
@@ -67,7 +54,7 @@ function a11yProps(index) {
 }
 
 export default function Study() {
-  const [activeTab, setActiveTab] = useState("read")
+  const [activeTab, setActiveTab] = useState(0)
   const [isListening, setIsListening] = useState(false)
   const [spokenText, setSpokenText] = useState("")
   const [currentWordIndex, setCurrentWordIndex] = useState(0)
@@ -87,8 +74,8 @@ export default function Study() {
         const transcript = Array.from(event.results)
           .map(result => result[0].transcript)
           .join('')
-        
-        if (activeTab === "practice") {
+
+        if (activeTab === 1) {
           setSpokenText(transcript)
           const result = compareWords(scripture.text, transcript)
           setPracticeResult(result)
@@ -104,7 +91,7 @@ export default function Study() {
             }
             setSpokenText("")
           }
-        } else if (activeTab === "test") {
+        } else if (activeTab === 2) {
           // Only update for final results in test mode
           if (event.results[event.results.length - 1].isFinal) {
             setTestSubmission(transcript)
@@ -240,8 +227,8 @@ export default function Study() {
           </CustomTabPanel>
       </CardContent>
       <CardActions className="flex justify-between">
-        <Button variant="outline" onClick={() => setActiveTab("read")}>Back to Reading</Button>
-        <Button onClick={() => setActiveTab(activeTab === "read" ? "practice" : activeTab === "practice" ? "test" : "read")}>
+        <Button variant="outline" onClick={() => setActiveTab(0)}>Back to Reading</Button>
+        <Button onClick={() => setActiveTab(activeTab === 0 ? 1 : activeTab === 1 ? 2 : 0)}>
           Next Mode
         </Button>
       </CardActions>
