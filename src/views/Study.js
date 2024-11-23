@@ -2,6 +2,8 @@ import React from "react";
 
 import { useState, useEffect, useRef } from "react"
 
+import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
+
 import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
 import CardActions from '@mui/material/CardActions';
@@ -54,28 +56,30 @@ function a11yProps(index) {
 }
 
 export default function Study() {
+  const {
+    transcript,
+    listening,
+    resetTranscript,
+    browserSupportsSpeechRecognition
+  } = useSpeechRecognition();
+
+
+
   const [activeTab, setActiveTab] = useState(0)
-  const [isListening, setIsListening] = useState(false)
   const [spokenText, setSpokenText] = useState("")
   const [currentWordIndex, setCurrentWordIndex] = useState(0)
   const [practiceResult, setPracticeResult] = useState([])
   const [testSubmission, setTestSubmission] = useState("")
   const [testResult, setTestResult] = useState([])
-  const recognitionRef = useRef(null)
 
   useEffect(() => {
-    if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
-      recognitionRef.current = new SpeechRecognition()
-      recognitionRef.current.continuous = true
-      recognitionRef.current.interimResults = true
+        console.log("transcript:", transcript);
+        console.log(currentWordIndex);
 
-      recognitionRef.current.onresult = (event) => {
-        const transcript = Array.from(event.results)
-          .map(result => result[0].transcript)
-          .join('')
 
         if (activeTab === 1) {
+
+          console.log("");
           setSpokenText(transcript)
           const result = compareWords(scripture.text, transcript)
           setPracticeResult(result)
@@ -85,34 +89,25 @@ export default function Study() {
           if (currentWord === lastSpokenWord) {
             // If correct, move to the next word and reset speech recognition
             setCurrentWordIndex(prev => Math.min(prev + 1, scripture.text.split(/\s+/).length - 1))
-            if (recognitionRef.current) {
-              recognitionRef.current.stop()
-              recognitionRef.current.start()
-            }
+            SpeechRecognition.stopListening()
+            SpeechRecognition.startListening({ continuous: true })
             setSpokenText("")
           }
         } else if (activeTab === 2) {
           // Only update for final results in test mode
-          if (event.results[event.results.length - 1].isFinal) {
             setTestSubmission(transcript)
             setTestResult(compareWords(scripture.text, transcript))
-          }
         }
-      }
-    }
-  }, [activeTab, currentWordIndex])
+  }, [activeTab, currentWordIndex, transcript])
 
   const toggleListening = () => {
-    if (isListening) {
-      recognitionRef.current?.stop()
+    if (listening) {
+      SpeechRecognition.stopListening()
     } else {
-      if (recognitionRef.current) {
-        recognitionRef.current.stop()
-        recognitionRef.current.start()
-      }
+      SpeechRecognition.stopListening()
+      SpeechRecognition.startListening({ continuous: true })
       setSpokenText("")
     }
-    setIsListening(!isListening)
   }
 
   const handleTestSubmit = () => {
@@ -174,8 +169,8 @@ export default function Study() {
                     {scripture.text.split(/\s+/)[currentWordIndex]}
                   </div>
                   <Button onClick={toggleListening} variant="outline" className="w-full">
-                    {isListening ? <MicOff className="mr-2 h-4 w-4" /> : <Mic className="mr-2 h-4 w-4" />}
-                    {isListening ? "Stop" : "Start"} Listening
+                    {listening ? <MicOff className="mr-2 h-4 w-4" /> : <Mic className="mr-2 h-4 w-4" />}
+                    {listening ? "Stop" : "Start"} Listening
                   </Button>
                     {practiceResult.map((result, index) => (
                       <span
@@ -200,11 +195,11 @@ export default function Study() {
               <CardContent>
                 <div className="space-y-4">
 
-                <textarea placeholder="type the scripture here..." onChange={(e) => {setTestSubmission(e.target.value)}} className="min-h-[100px]">{{testSubmission}}</textarea>
+                <textarea placeholder="type the scripture here..." onChange={(e) => { console.log("onChange:", e); setTestSubmission(e.target.value)}} className="min-h-[100px]">{{testSubmission}}</textarea>
                   <div className="flex justify-between">
                     <Button onClick={toggleListening} variant="outline">
-                      {isListening ? <MicOff className="mr-2 h-4 w-4" /> : <Mic className="mr-2 h-4 w-4" />}
-                      {isListening ? "Stop" : "Start"} Listening
+                      {listening ? <MicOff className="mr-2 h-4 w-4" /> : <Mic className="mr-2 h-4 w-4" />}
+                      {listening ? "Stop" : "Start"} Listening
                     </Button>
                     <Button onClick={handleTestSubmit}>
                       <Check className="mr-2 h-4 w-4" />
