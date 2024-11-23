@@ -2,6 +2,10 @@ import React, { useState } from "react";
 import { NavLink as RouterNavLink } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import logo from '../assets/logo.svg';
+import FormControl from '@mui/material/FormControl';
+import InputLabel from '@mui/material/InputLabel';
+import Input from '@mui/material/Input';
+import FormHelperText from '@mui/material/FormHelperText';
 
 import {
   Container,
@@ -38,7 +42,11 @@ const NavBar = () => {
       <Navbar color="light" light expand="md" container={false}>
         <Container>
           <img id="faithForgeLogo" src={logo} alt="Faith Forge Academy logo"/>
-            
+          <FormControl>
+            <InputLabel htmlFor="search-field">Search</InputLabel>
+            <Input id="search-field" aria-describedby="search-help" />
+            <FormHelperText id="search-help">Search for a scripture</FormHelperText>
+          </FormControl>
             <Nav className="d-none d-md-block" navbar>
               {!isAuthenticated && (
                 <NavItem>
