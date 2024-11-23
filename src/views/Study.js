@@ -176,11 +176,9 @@ export default function Study() {
             <Tabs label="Test" {...a11yProps(2)} />
         </Tabs>
     <Card className="w-full max-w-3xl mx-auto">
-      <CardHeader>
-        Scripture Learning
-        Read, practice, and test your scripture knowledge
-      </CardHeader>
       <CardContent>
+          <h1>Scripture Learning</h1>
+          <p>Read, practice, and test your scripture knowledge</p>
           <CustomTabPanel value={activeTab} index={0}> 
             <Card>
               <CardContent>
