@@ -39,33 +39,29 @@ const NavBar = () => {
     logout,
   } = useAuth0();
 
-  const fetchBibles = async () => {
+  const [results, setResults] = useState([]);
+
+  const fetchBibles = async (searchterm) => {
 
       // url: "https://api.scripture.api.bible/v1/bibles/de4e12af7f28f599-01/verses/JHN.3.16?include-verse-spans=false&include-verse-numbers=false&include-chapter-numbers=false&content-type=text",
 
+    console.log(searchterm)
+    
       axios({
-        url: "https://api.scripture.api.bible/v1/bibles/72f4e6dc683324df-02/search?query=love&limit=1000&sort=relevance&range=gen.1.1-rev.22.21",
+        url: `https://api.scripture.api.bible/v1/bibles/72f4e6dc683324df-02/search?query=${searchterm}&limit=1000&sort=relevance&range=gen.1.1-rev.22.21`,
         method: "GET",
         headers: {
             "api-key": "d3a09e9efb9856e7eac0ca40bd4b4fc3"
         }
     })
-        // Handle the response from backend here
-        .then((res) => {
+    .then((res) => {
 
-          console.log(res);
-
-          let refs = res.data.data.verses.map((verse) => {
-            return verse.reference;
-          })
-
-          console.log(refs)
-
-
-        })
-
-        // Catch errors if any
-        .catch((err) => {});
+        setResults(res.data.data.verses)
+        // let refs = res.data.data.verses.map((verse) => {
+        // return verse.reference;
+      // })
+    })
+    .catch((err) => {});
   }
 
   const [search, setSearch] = useState('');
@@ -89,7 +85,7 @@ const NavBar = () => {
   }
 
   useEffect(() => {
-    fetchBibles()
+    fetchBibles(search)
   }, [search])
 
   const logoutWithRedirect = () =>
@@ -205,6 +201,13 @@ const NavBar = () => {
             <InputLabel htmlFor="search-field">Search</InputLabel>
             <Input id="search-field" aria-describedby="search-help" value={search} onChange={handleSearchChange}/>
             <FormHelperText id="search-help">Search for a scripture</FormHelperText>
+            <div>
+              {
+                results.map((result) => {
+                  return <p>{result.text}</p>;
+                })
+              }
+            </div>
         </FormControl>
       </>
       </Dialog>
