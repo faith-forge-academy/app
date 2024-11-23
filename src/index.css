@@ -40,3 +40,47 @@ code {
 #faithForgeLogo {
   width: 50px;
 }
+
+.d-none {
+  display: block !important;
+}
+
+.navbar {
+  padding: 0;
+}
+
+.navbar .container {
+  padding: 1.375rem;
+}
+
+.nav-item .nav-link {
+  padding: 0;
+}
+
+@media (min-width: 768px) {
+  .navbar-expand-md .navbar-nav .dropdown-menu {
+      position: absolute;
+      left: -100px;
+  }
+
+  .navbar-expand-md {
+    flex-flow: wrap;
+  }
+}
+
+@media (max-width: 767px) {
+  .navbar-nav:last-child {
+      background: transparent;
+      box-shadow: none;
+      margin: 0;
+      padding: 0;
+  }
+
+  .navbar-nav .dropdown-menu {
+    left: -100px;
+  }
+
+  .navbar-nav {
+    flex-direction:row;
+  }
+}

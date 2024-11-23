@@ -4,10 +4,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import logo from '../assets/logo.svg';
 
 import {
-  Collapse,
   Container,
   Navbar,
-  NavbarToggler,
   Nav,
   NavItem,
   NavLink,
@@ -42,32 +40,7 @@ const NavBar = () => {
       <Navbar color="light" light expand="md" container={false}>
         <Container>
           <img id="faithForgeLogo" src={logo} />
-          <NavbarToggler onClick={toggle} />
-          <Collapse isOpen={isOpen} navbar>
-            <Nav className="mr-auto" navbar>
-              <NavItem>
-                <NavLink
-                  tag={RouterNavLink}
-                  to="/"
-                  exact
-                  activeClassName="router-link-exact-active"
-                >
-                  Home
-                </NavLink>
-              </NavItem>
-              {isAuthenticated && (
-                <NavItem>
-                  <NavLink
-                    tag={RouterNavLink}
-                    to="/study"
-                    exact
-                    activeClassName="router-link-exact-active"
-                  >
-                    Study
-                  </NavLink>
-                </NavItem>
-              )}
-            </Nav>
+            
             <Nav className="d-none d-md-block" navbar>
               {!isAuthenticated && (
                 <NavItem>
@@ -112,59 +85,32 @@ const NavBar = () => {
                 </UncontrolledDropdown>
               )}
             </Nav>
-            {!isAuthenticated && (
-              <Nav className="d-md-none" navbar>
+        </Container>
+        <Container>
+        <Nav className="mr-auto" navbar>
+              <NavItem>
+                <NavLink
+                  tag={RouterNavLink}
+                  to="/"
+                  exact
+                  activeClassName="router-link-exact-active"
+                >
+                  Home
+                </NavLink>
+              </NavItem>
+              {isAuthenticated && (
                 <NavItem>
-                  <Button
-                    id="qsLoginBtn"
-                    color="primary"
-                    block
-                    onClick={() => loginWithRedirect({})}
-                  >
-                    Log in
-                  </Button>
-                </NavItem>
-              </Nav>
-            )}
-            {isAuthenticated && (
-              <Nav
-                className="d-md-none justify-content-between"
-                navbar
-                style={{ minHeight: 170 }}
-              >
-                <NavItem>
-                  <span className="user-info">
-                    <img
-                      src={user.picture}
-                      alt="Profile"
-                      className="nav-user-profile d-inline-block rounded-circle mr-3"
-                      width="50"
-                    />
-                    <h6 className="d-inline-block">{user.name}</h6>
-                  </span>
-                </NavItem>
-                <NavItem>
-                  <FontAwesomeIcon icon="user" className="mr-3" />
-                  <RouterNavLink
-                    to="/profile"
+                  <NavLink
+                    tag={RouterNavLink}
+                    to="/study"
+                    exact
                     activeClassName="router-link-exact-active"
                   >
-                    Profile
-                  </RouterNavLink>
+                    Study
+                  </NavLink>
                 </NavItem>
-                <NavItem>
-                  <FontAwesomeIcon icon="power-off" className="mr-3" />
-                  <RouterNavLink
-                    to="#"
-                    id="qsLogoutBtn"
-                    onClick={() => logoutWithRedirect()}
-                  >
-                    Log out
-                  </RouterNavLink>
-                </NavItem>
-              </Nav>
-            )}
-          </Collapse>
+              )}
+            </Nav>
         </Container>
       </Navbar>
     </div>
