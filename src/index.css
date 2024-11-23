@@ -36,3 +36,7 @@ code {
 .inline-block {
   display: inline-block;
 }
+
+#faithForgeLogo {
+  width: 50px;
+}
