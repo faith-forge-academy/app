@@ -20,3 +20,15 @@ code {
 .text-red-600 {
   color: #dc2626
 }
+
+#scriptureInput {
+  width: 100%;
+}
+
+.flex {
+  display: flex;
+}
+
+.justify-between {
+  justify-content: space-between;
+}

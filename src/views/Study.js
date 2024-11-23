@@ -195,7 +195,7 @@ export default function Study() {
               <CardContent>
                 <div className="space-y-4">
 
-                <textarea placeholder="type the scripture here..." onChange={(e) => { console.log("onChange:", e); setTestSubmission(e.target.value)}} className="min-h-[100px]">{{testSubmission}}</textarea>
+                <textarea id="scriptureInput" placeholder="type the scripture here..." onChange={(e) => { console.log("onChange:", e); setTestSubmission(e.target.value)}} className="min-h-[100px]">{{testSubmission}}</textarea>
                   <div className="flex justify-between">
                     <Button onClick={toggleListening} variant="outline">
                       {listening ? <MicOff className="mr-2 h-4 w-4" /> : <Mic className="mr-2 h-4 w-4" />}
