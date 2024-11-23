@@ -34,7 +34,7 @@ function compareWords(original: string, spoken: string): { correct: boolean; wor
 }
 
 function replaceText(str){
-  str = str.replaceAll(/[.,\/#!$%\^&\*;:{}=\-_`~()]/gu, '').toLowerCase()
+  str = str.replaceAll(/[.,/#!$%^&*;:{}=\-_`~()]/gu, '').toLowerCase()
   return str
 }
 
@@ -71,6 +71,10 @@ export default function Study() {
   const v = useSelector((state) => { return state.verse});
   console.log(v);
   if (v !== {} && v.id !== undefined && v.content != undefined){
+    scripture.reference = v.id;
+    scripture.text = v.content;
+  } else if (window.localStorage.getItem("verse")){
+    const v = JSON.parse(window.localStorage.getItem("verse"))
     scripture.reference = v.id;
     scripture.text = v.content;
   }
