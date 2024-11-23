@@ -6,6 +6,7 @@ import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
 import Input from '@mui/material/Input';
 import FormHelperText from '@mui/material/FormHelperText';
+import axios from "axios";
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import { TransitionProps } from '@mui/material/transitions';
@@ -38,6 +39,35 @@ const NavBar = () => {
     logout,
   } = useAuth0();
 
+  const fetchBibles = async () => {
+
+      // url: "https://api.scripture.api.bible/v1/bibles/de4e12af7f28f599-01/verses/JHN.3.16?include-verse-spans=false&include-verse-numbers=false&include-chapter-numbers=false&content-type=text",
+
+      axios({
+        url: "https://api.scripture.api.bible/v1/bibles/72f4e6dc683324df-02/search?query=love&limit=1000&sort=relevance&range=gen.1.1-rev.22.21",
+        method: "GET",
+        headers: {
+            "api-key": "d3a09e9efb9856e7eac0ca40bd4b4fc3"
+        }
+    })
+        // Handle the response from backend here
+        .then((res) => {
+
+          console.log(res);
+
+          let refs = res.data.data.verses.map((verse) => {
+            return verse.reference;
+          })
+
+          console.log(refs)
+
+
+        })
+
+        // Catch errors if any
+        .catch((err) => {});
+  }
+
   const [search, setSearch] = useState('');
 
   const [open, setOpen] = React.useState(false);
@@ -59,7 +89,7 @@ const NavBar = () => {
   }
 
   useEffect(() => {
-    console.log(search)
+    fetchBibles()
   }, [search])
 
   const logoutWithRedirect = () =>
