@@ -10,6 +10,7 @@ import CardActions from '@mui/material/CardActions';
 import CardHeader from '@mui/material/CardHeader';
 import CardContent from '@mui/material/CardContent';
 import Tabs from '@mui/material/Tabs';
+import Tab from '@mui/material/Tab';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 
@@ -171,14 +172,12 @@ export default function Study() {
   return (
     <>
         <Tabs value={activeTab} onChange={handleTabChange}>
-            <Tabs label="Read" {...a11yProps(0)} />
-            <Tabs label="Practice" {...a11yProps(1)} />
-            <Tabs label="Test" {...a11yProps(2)} />
+            <Tab label="Read" {...a11yProps(0)} />
+            <Tab label="Practice" {...a11yProps(1)} />
+            <Tab label="Test" {...a11yProps(2)} />
         </Tabs>
     <Card className="w-full max-w-3xl mx-auto">
       <CardContent>
-          <h1>Scripture Learning</h1>
-          <p>Read, practice, and test your scripture knowledge</p>
           <CustomTabPanel value={activeTab} index={0}> 
             <Card>
               <CardContent>
