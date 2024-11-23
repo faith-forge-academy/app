@@ -37,7 +37,7 @@ const NavBar = () => {
     <div className="nav-container">
       <Navbar color="light" light expand="md" container={false}>
         <Container>
-          <img id="faithForgeLogo" src={logo} />
+          <img id="faithForgeLogo" src={logo} alt="Faith Forge Academy logo"/>
             
             <Nav className="d-none d-md-block" navbar>
               {!isAuthenticated && (
