@@ -178,40 +178,64 @@ export default function Study() {
     <Card className="w-full max-w-3xl mx-auto">
       <CardContent>
           <CustomTabPanel value={activeTab} index={0}> 
-            <Card>
-              <CardContent>
-                  <h1>{scripture.reference}</h1>
-                  <p>{scripture.text}</p>
-              </CardContent>
-            </Card>
+              <h1>{scripture.reference}</h1>
+              <p>{scripture.text}</p>
           </CustomTabPanel>
           <CustomTabPanel value={activeTab} index={1}>
-            <Card>
-              <CardContent>
-                <h1>Word-by-Word Practice</h1>
-                <p>Practice the scripture word by word</p>
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <Button onClick={prevWord} disabled={currentWordIndex === 0}>
-                      <ArrowLeft className="mr-2 h-4 w-4" />
-                      Previous
-                    </Button>
-                    <span className="text-sm text-muted-foreground">
-                      Word {currentWordIndex + 1} of {scripture.text.split(/\s+/).length}
+              <h1>Word-by-Word Practice</h1>
+              <p>Practice the scripture word by word</p>
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <Button onClick={prevWord} disabled={currentWordIndex === 0}>
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Previous
+                  </Button>
+                  <span className="text-sm text-muted-foreground">
+                    Word {currentWordIndex + 1} of {scripture.text.split(/\s+/).length}
+                  </span>
+                  <Button onClick={nextWord} disabled={currentWordIndex === scripture.text.split(/\s+/).length - 1}>
+                    Next
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="text-center text-2xl font-bold p-4 border rounded">
+                  {scripture.text.split(/\s+/)[currentWordIndex]}
+                </div>
+                <Button onClick={toggleListening} variant="outline" className="w-full">
+                  {listening ? <MicOff className="mr-2 h-4 w-4" /> : <Mic className="mr-2 h-4 w-4" />}
+                  {listening ? "Stop" : "Start"} Listening
+                </Button>
+                  {practiceResult.map((result, index) => (
+                    <span
+                      key={index}
+                      className={`inline-block mr-1 ${
+                        result.correct ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
+                      }`}
+                    >
+                      {result.word}
                     </span>
-                    <Button onClick={nextWord} disabled={currentWordIndex === scripture.text.split(/\s+/).length - 1}>
-                      Next
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </Button>
-                  </div>
-                  <div className="text-center text-2xl font-bold p-4 border rounded">
-                    {scripture.text.split(/\s+/)[currentWordIndex]}
-                  </div>
-                  <Button onClick={toggleListening} variant="outline" className="w-full">
+                  ))}
+              </div>
+          </CustomTabPanel>
+          <CustomTabPanel value={activeTab} index={2}>
+              <h1>Memorization Test</h1>
+              <p>Type or speak the scripture from memory and check your accuracy</p>
+              <div className="space-y-4">
+
+              <textarea id="scriptureInput" placeholder="type the scripture here..." className="min-h-[100px]"
+                onChange={(e) => {setTestSubmission(e.target.value)}} value={testSubmission} ></textarea>
+                <div className="flex justify-between">
+                  <Button onClick={toggleListening} variant="outline">
                     {listening ? <MicOff className="mr-2 h-4 w-4" /> : <Mic className="mr-2 h-4 w-4" />}
                     {listening ? "Stop" : "Start"} Listening
                   </Button>
-                    {practiceResult.map((result, index) => (
+                  <Button onClick={handleTestSubmit}>
+                    <Check className="mr-2 h-4 w-4" />
+                    Check Answer
+                  </Button>
+                </div>
+                <Typography>
+                    {testResult.map((result, index) => (
                       <span
                         key={index}
                         className={`inline-block mr-1 ${
@@ -221,44 +245,8 @@ export default function Study() {
                         {result.word}
                       </span>
                     ))}
-                </div>
-              </CardContent>
-            </Card>
-          </CustomTabPanel>
-          <CustomTabPanel value={activeTab} index={2}>
-            <Card>
-              <CardContent>
-                <h1>Memorization Test</h1>
-                <p>Type or speak the scripture from memory and check your accuracy</p>
-                <div className="space-y-4">
-
-                <textarea id="scriptureInput" placeholder="type the scripture here..." className="min-h-[100px]"
-                  onChange={(e) => {setTestSubmission(e.target.value)}} value={testSubmission} ></textarea>
-                  <div className="flex justify-between">
-                    <Button onClick={toggleListening} variant="outline">
-                      {listening ? <MicOff className="mr-2 h-4 w-4" /> : <Mic className="mr-2 h-4 w-4" />}
-                      {listening ? "Stop" : "Start"} Listening
-                    </Button>
-                    <Button onClick={handleTestSubmit}>
-                      <Check className="mr-2 h-4 w-4" />
-                      Check Answer
-                    </Button>
-                  </div>
-                  <Typography>
-                      {testResult.map((result, index) => (
-                        <span
-                          key={index}
-                          className={`inline-block mr-1 ${
-                            result.correct ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
-                          }`}
-                        >
-                          {result.word}
-                        </span>
-                      ))}
-                      </Typography>
-                </div>
-              </CardContent>
-            </Card>
+                    </Typography>
+              </div>
           </CustomTabPanel>
       </CardContent>
       <CardActions className="flex justify-between">
