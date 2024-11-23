@@ -136,21 +136,17 @@ export default function Study() {
         </Tabs>
           <CustomTabPanel value={activeTab} index={0}> 
             <Card>
-              <CardHeader>
-                {scripture.reference}
-              </CardHeader>
               <CardContent>
+                  <h1>{scripture.reference}</h1>
                   <p>{scripture.text}</p>
               </CardContent>
             </Card>
           </CustomTabPanel>
           <CustomTabPanel value={activeTab} index={1}>
             <Card>
-              <CardHeader>
-                Word-by-Word Practice
-                Practice the scripture word by word
-              </CardHeader>
               <CardContent>
+                <h1>Word-by-Word Practice</h1>
+                <p>Practice the scripture word by word</p>
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
                     <Button onClick={prevWord} disabled={currentWordIndex === 0}>
@@ -188,11 +184,9 @@ export default function Study() {
           </CustomTabPanel>
           <CustomTabPanel value={activeTab} index={2}>
             <Card>
-              <CardHeader>
-                Memorization Test
-                Type or speak the scripture from memory and check your accuracy
-              </CardHeader>
               <CardContent>
+                <h1>Memorization Test</h1>
+                <p>Type or speak the scripture from memory and check your accuracy</p>
                 <div className="space-y-4">
 
                 <textarea id="scriptureInput" placeholder="type the scripture here..." onChange={(e) => { console.log("onChange:", e); setTestSubmission(e.target.value)}} className="min-h-[100px]" value={testSubmission}></textarea>
