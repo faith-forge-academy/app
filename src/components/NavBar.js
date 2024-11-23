@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { NavLink as RouterNavLink } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import logo from '../assets/logo.svg';
@@ -30,6 +30,16 @@ const NavBar = () => {
     logout,
   } = useAuth0();
 
+  const [search, setSearch] = useState('');
+
+  const handleSearchChange = (e) => {
+    setSearch(e.target.value);
+  }
+
+  useEffect(() => {
+    console.log(search)
+  }, [search])
+
   const logoutWithRedirect = () =>
     logout({
         logoutParams: {
@@ -44,7 +54,7 @@ const NavBar = () => {
           <img id="faithForgeLogo" src={logo} alt="Faith Forge Academy logo"/>
           <FormControl>
             <InputLabel htmlFor="search-field">Search</InputLabel>
-            <Input id="search-field" aria-describedby="search-help" />
+            <Input id="search-field" aria-describedby="search-help" value={search} onChange={handleSearchChange}/>
             <FormHelperText id="search-help">Search for a scripture</FormHelperText>
           </FormControl>
             <Nav className="d-none d-md-block" navbar>
