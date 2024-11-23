@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+  import { useSelector, useDispatch } from 'react-redux';
 import { NavLink as RouterNavLink } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import logo from '../assets/logo.svg';
@@ -27,11 +28,16 @@ import {
 
 import { useAuth0 } from "@auth0/auth0-react";
 
+import {open, close} from "../features/openSlice";
+
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
-const NavBar = () => {
+const NavBar = (props) => {
+  const {
+    search
+  } = props;
   const {
     user,
     isAuthenticated,
@@ -39,54 +45,16 @@ const NavBar = () => {
     logout,
   } = useAuth0();
 
-  const [results, setResults] = useState([]);
+  const openState = useSelector((state) => state.open.value);
+  const dispatch = useDispatch();
 
-  const fetchBibles = async (searchterm) => {
-
-      // url: "https://api.scripture.api.bible/v1/bibles/de4e12af7f28f599-01/verses/JHN.3.16?include-verse-spans=false&include-verse-numbers=false&include-chapter-numbers=false&content-type=text",
-
-    console.log(searchterm)
-    
-      axios({
-        url: `https://api.scripture.api.bible/v1/bibles/72f4e6dc683324df-02/search?query=${searchterm}&limit=1000&sort=relevance&range=gen.1.1-rev.22.21`,
-        method: "GET",
-        headers: {
-            "api-key": "d3a09e9efb9856e7eac0ca40bd4b4fc3"
-        }
-    })
-    .then((res) => {
-
-        setResults(res.data.data.verses)
-        // let refs = res.data.data.verses.map((verse) => {
-        // return verse.reference;
-      // })
-    })
-    .catch((err) => {});
-  }
-
-  const [search, setSearch] = useState('');
-
-  const [open, setOpen] = React.useState(false);
-
-  const handleClose = () => {
-    setOpen(false);
+  const closeSearch = () => {
+    dispatch(close())
   };
 
   const openSearch = () => {
-    setOpen(true)
+    dispatch(open())
   }
-  
-  const closeSearch = () => {
-    setOpen(false)
-  }
-
-  const handleSearchChange = (e) => {
-    setSearch(e.target.value);
-  }
-
-  useEffect(() => {
-    fetchBibles(search)
-  }, [search])
 
   const logoutWithRedirect = () =>
     logout({
@@ -100,6 +68,17 @@ const NavBar = () => {
       <Navbar color="light" light expand="md" container={false}>
         <Container>
           <img id="faithForgeLogo" src={logo} alt="Faith Forge Academy logo"/>
+            {isAuthenticated && (
+                  <Button
+                    id="qsSearchBtn"
+                    color="primary"
+                    className="btn-margin"
+                    onClick={() => openSearch()}
+                  >
+                    Search
+                  </Button>
+            )}
+
             <Nav className="d-none d-md-block" navbar>
               {!isAuthenticated && (
                 <NavItem>
@@ -114,17 +93,6 @@ const NavBar = () => {
                 </NavItem>
               )}
               {isAuthenticated && (
-                <>
-                  <NavItem>
-                  <Button
-                    id="qsSearchBtn"
-                    color="primary"
-                    className="btn-margin"
-                    onClick={() => openSearch()}
-                  >
-                    Search
-                  </Button>
-                </NavItem>
                 <UncontrolledDropdown nav inNavbar>
                   <DropdownToggle nav caret id="profileDropDown">
                     <img
@@ -153,7 +121,6 @@ const NavBar = () => {
                     </DropdownItem>
                   </DropdownMenu>
                 </UncontrolledDropdown>
-              </>
               )}
             </Nav>
         </Container>
@@ -185,31 +152,10 @@ const NavBar = () => {
         </Container>
       </Navbar>
       <Dialog fullScreen
-        open={open}
-        onClose={handleClose}
+        open={openState}
+        onClose={closeSearch}
         TransitionComponent={Transition}>
-      <>
-        <Button
-          id="qsSearchBtn"
-          color="primary"
-          className="btn-margin"
-          onClick={() => closeSearch()}
-        >
-          X
-        </Button>
-        <FormControl>    
-            <InputLabel htmlFor="search-field">Search</InputLabel>
-            <Input id="search-field" aria-describedby="search-help" value={search} onChange={handleSearchChange}/>
-            <FormHelperText id="search-help">Search for a scripture</FormHelperText>
-            <div>
-              {
-                results.map((result) => {
-                  return <p>{result.text}</p>;
-                })
-              }
-            </div>
-        </FormControl>
-      </>
+        {search}
       </Dialog>
     </div>
   );

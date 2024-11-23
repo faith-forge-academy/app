@@ -1,6 +1,6 @@
 import React from "react";
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useContext } from "react"
 
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
 
@@ -12,13 +12,13 @@ import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
-
+import { useSelector } from "react-redux";
 import { Mic, MicOff, Check, ArrowRight, ArrowLeft } from "lucide-react"
 
 // Mock scripture data (replace with actual data in a real application)
 const scripture = {
   reference: "John 3:16",
-  text: "For God so loved the world, that he gave his one and only Son that whoever believes in him shall; not perish but have eternal life!.",
+  text: "For God so loved the world, that he gave his one and only Son that whoever believes in him shall not perish but have eternal life.",
   replacedText: "",
   splitText: []
 }
@@ -68,6 +68,13 @@ export default function Study() {
     resetTranscript,
     browserSupportsSpeechRecognition
   } = useSpeechRecognition();
+  const v = useSelector((state) => {console.log("useSelector:", state); return state.verse});
+  console.log(v);
+  if (v != undefined){
+    scripture.reference = v.id;
+    scripture.text = v.content;
+  }
+
   scripture.replacedText = replaceText(scripture.text)
   scripture.splitText = scripture.replacedText.split(/\s+/)
   const [activeTab, setActiveTab] = useState(0)
@@ -75,7 +82,6 @@ export default function Study() {
   const [currentWordIndex, setCurrentWordIndex] = useState(0)
   const [testSubmission, setTestSubmission] = useState("")
   const [testResult, setTestResult] = useState([])
-
 
   useEffect(() => {
 

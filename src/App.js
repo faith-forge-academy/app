@@ -1,10 +1,11 @@
-import React from "react";
+import React, { useState, useCallback } from "react";
 import { Router, Route, Switch } from "react-router-dom";
 import { Container } from "reactstrap";
 
 import Loading from "./components/Loading";
 import NavBar from "./components/NavBar";
 import Footer from "./components/Footer";
+import Search from "./components/Search";
 import Home from "./views/Home";
 import Study from "./views/Study";
 import Profile from "./views/Profile";
@@ -32,7 +33,7 @@ const App = () => {
   return (
     <Router history={history}>
       <div id="app" className="d-flex flex-column h-100">
-        <NavBar />
+        <NavBar search={<Search />} />
         <Container className="flex-grow-1">
           <Switch>
             <Route path="/" exact component={Home} />
