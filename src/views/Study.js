@@ -68,9 +68,9 @@ export default function Study() {
     resetTranscript,
     browserSupportsSpeechRecognition
   } = useSpeechRecognition();
-  const v = useSelector((state) => {console.log("useSelector:", state); return state.verse});
+  const v = useSelector((state) => { return state.verse});
   console.log(v);
-  if (v != undefined){
+  if (v !== {} && v.id !== undefined && v.content != undefined){
     scripture.reference = v.id;
     scripture.text = v.content;
   }
