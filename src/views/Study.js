@@ -1,6 +1,6 @@
 import React from "react";
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect } from "react"
 
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
 
@@ -58,7 +58,6 @@ function a11yProps(index) {
 
 export default function Study() {
   const {
-    transcript,
     finalTranscript,
     listening,
     resetTranscript,
@@ -68,7 +67,6 @@ export default function Study() {
   const [activeTab, setActiveTab] = useState(0)
   const [spokenText, setSpokenText] = useState("")
   const [currentWordIndex, setCurrentWordIndex] = useState(0)
-  const [practiceResult, setPracticeResult] = useState([])
   const [testSubmission, setTestSubmission] = useState("")
   const [testResult, setTestResult] = useState([])
 
@@ -77,11 +75,12 @@ export default function Study() {
         if (activeTab === 1) {
           console.log("spokenText:", spokenText)
           let transSplits = []
-          if(spokenText != ""){
+          if(spokenText !== ""){
             transSplits = spokenText.trim().split(/\s+/)
           }
           console.log("splits:", transSplits)
-          if (transSplits.length === 0 && currentWordIndex != 0){
+          if (transSplits.length === 0 && currentWordIndex !== 0){
+            console.log("paused... after matching")
             startSpeechRecognition()
             return
           }
@@ -98,7 +97,7 @@ export default function Study() {
               break
             }
           }
-          if(increase != 0){
+          if(increase !== 0){
             console.log("increasing currentWordIndex by "+ increase)
             setCurrentWordIndex(prev => Math.min(prev + increase, scripture.splitText.length - 1))
             setSpokenText("")
@@ -107,8 +106,7 @@ export default function Study() {
             resetTranscript();
           }
 
-      SpeechRecognition.startListening()
-
+          startSpeechRecognition()
           // setSpokenText(transcript)
           // const result = compareWords(scripture.text, transcript)
           // console.log(result);
@@ -128,10 +126,14 @@ export default function Study() {
         }
   }, [spokenText])
 
+  useEffect(() =>{
+    console.log("listening value changed", listening)
+  }, [listening])
 
   useEffect(() => {
     setSpokenText("")
     setTestResult([])
+    setTestSubmission("")
   }, [activeTab])
 
   useEffect(() => {
@@ -149,7 +151,10 @@ export default function Study() {
   }
 
   const startSpeechRecognition = () => {
+      console.log("startSpeechRecognition: before")
       SpeechRecognition.startListening()
+      console.log("startSpeechRecognition: after")
+      console.log(listening)
   }
 
   const handleTestSubmit = () => {
@@ -186,16 +191,6 @@ export default function Study() {
               <p>Practice the scripture word by word</p>
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
-                {practiceResult.map((result, index) => (
-                    <span
-                      key={index}
-                      className={`inline-block mr-1 ${
-                        result.correct ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
-                      }`}
-                    >
-                      {result.word}
-                    </span>
-                  ))}
                   <Button onClick={prevWord} disabled={currentWordIndex === 0}>
                     <ArrowLeft className="mr-2 h-4 w-4" />
                     Previous
