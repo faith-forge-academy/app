@@ -18,20 +18,25 @@ import { Mic, MicOff, Check, ArrowRight, ArrowLeft } from "lucide-react"
 // Mock scripture data (replace with actual data in a real application)
 const scripture = {
   reference: "John 3:16",
-  text: "For God so loved the world that he gave his one and only Son that whoever believes in him shall not perish but have eternal life",
+  text: "For God so loved the world, that he gave his one and only Son that whoever believes in him shall; not perish but have eternal life!.",
+  replacedText: "",
   splitText: []
 }
 
 // Simple word-by-word comparison function
 function compareWords(original: string, spoken: string): { correct: boolean; word: string }[] {
-  const originalWords = original.toLowerCase().split(/\s+/)
+  const originalWords = original.split(/\s+/)
   const spokenWords = spoken.toLowerCase().split(/\s+/)
   return originalWords.map((word, index) => ({
-    correct: index < spokenWords.length && word === spokenWords[index],
+    correct: index < spokenWords.length && replaceText(word) === replaceText(spokenWords[index]),
     word: word
   }))
 }
 
+function replaceText(str){
+  str = str.replaceAll(/[.,\/#!$%\^&\*;:{}=\-_`~()]/gu, '').toLowerCase()
+  return str
+}
 
 function CustomTabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -63,12 +68,14 @@ export default function Study() {
     resetTranscript,
     browserSupportsSpeechRecognition
   } = useSpeechRecognition();
-  scripture.splitText = scripture.text.split(/\s+/)
+  scripture.replacedText = replaceText(scripture.text)
+  scripture.splitText = scripture.replacedText.split(/\s+/)
   const [activeTab, setActiveTab] = useState(0)
   const [spokenText, setSpokenText] = useState("")
   const [currentWordIndex, setCurrentWordIndex] = useState(0)
   const [testSubmission, setTestSubmission] = useState("")
   const [testResult, setTestResult] = useState([])
+
 
   useEffect(() => {
 
@@ -107,19 +114,6 @@ export default function Study() {
           }
 
           startSpeechRecognition()
-          // setSpokenText(transcript)
-          // const result = compareWords(scripture.text, transcript)
-          // console.log(result);
-          // setPracticeResult(result)
-          // // Check if the last word spoken matches the current word
-          // const currentWord = scripture.text.split(/\s+/)[currentWordIndex].toLowerCase()
-          // const lastSpokenWord = transcript.trim().split(/\s+/).pop()?.toLowerCase()
-          // console.log("curentWord:", currentWord, "lastSpokenWord:", lastSpokenWord);
-          // if (currentWord === lastSpokenWord) {
-          //   // If correct, move to the next word and reset speech recognition
-          //   setCurrentWordIndex(prev => Math.min(prev + 1, scripture.text.split(/\s+/).length - 1))
-          // }
-          //   setSpokenText("")
         } else if (activeTab === 2) {
           // Only update for final results in test mode
           setTestSubmission(spokenText)
