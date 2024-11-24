@@ -114,7 +114,7 @@ function Home() {
       <Container sx={{ py: 8 }} maxWidth="md">
         <Typography>
           Faith Forge Academy was co-founded by Lucas Pearson, Adam Makinson, and Mike Sumpter during a Christian hackaton called <Link href="https://hack.indigitous.org/">HACK</Link> by <Link href="https://indigitous.org/">Indigitous</Link>.
-          With a heart of teens and the Word of God we decided the best way to help the next generation write the Word of God
+          With a heart for teens and the Word of God we decided the best way to help the next generation write the Word of God
           on there hearts was a voice to text app that would help them study His Word.
         </Typography>
       </Container>
