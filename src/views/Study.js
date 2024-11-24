@@ -1,6 +1,6 @@
 import React from "react";
 
-import { useState, useEffect, useContext } from "react"
+import { useState, useEffect, useCallback } from "react"
 
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
 
@@ -66,11 +66,10 @@ export default function Study() {
     finalTranscript,
     listening,
     resetTranscript,
-    browserSupportsSpeechRecognition
   } = useSpeechRecognition();
   const v = useSelector((state) => { return state.verse});
   console.log(v);
-  if (v !== {} && v.id !== undefined && v.content != undefined){
+  if (v !== {} && v.id !== undefined && v.content !== undefined){
     scripture.reference = v.id;
     scripture.text = v.content;
   } else if (window.localStorage.getItem("verse")){
@@ -86,6 +85,13 @@ export default function Study() {
   const [currentWordIndex, setCurrentWordIndex] = useState(0)
   const [testSubmission, setTestSubmission] = useState("")
   const [testResult, setTestResult] = useState([])
+
+  const startSpeechRecognition = useCallback(() => {
+      console.log("startSpeechRecognition: before")
+      SpeechRecognition.startListening()
+      console.log("startSpeechRecognition: after")
+      console.log(listening)
+  },[listening])
 
   useEffect(() => {
 
@@ -128,11 +134,7 @@ export default function Study() {
           // Only update for final results in test mode
           setTestSubmission(spokenText)
         }
-  }, [spokenText])
-
-  useEffect(() =>{
-    console.log("listening value changed", listening)
-  }, [listening])
+  }, [activeTab, spokenText, currentWordIndex, resetTranscript, startSpeechRecognition])
 
   useEffect(() => {
     setSpokenText("")
@@ -152,13 +154,6 @@ export default function Study() {
       console.log("toggleListening: false")
       SpeechRecognition.startListening()
     }
-  }
-
-  const startSpeechRecognition = () => {
-      console.log("startSpeechRecognition: before")
-      SpeechRecognition.startListening()
-      console.log("startSpeechRecognition: after")
-      console.log(listening)
   }
 
   const handleTestSubmit = () => {

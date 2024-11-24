@@ -4,7 +4,7 @@ import InputLabel from '@mui/material/InputLabel';
 import Input from '@mui/material/Input';
 import FormHelperText from '@mui/material/FormHelperText';
 import axios from "axios";
-import { useSelector, useDispatch } from "react-redux";
+import { useDispatch } from "react-redux";
 import { close } from '../features/openSlice';
 import { setGlobalVerse } from '../features/verseSlice.js';
 import { Button } from "reactstrap";
