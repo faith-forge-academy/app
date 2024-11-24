@@ -1,6 +1,6 @@
 import React from "react";
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect } from "react"
 
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
 
@@ -86,13 +86,6 @@ export default function Study() {
   const [testSubmission, setTestSubmission] = useState("")
   const [testResult, setTestResult] = useState([])
 
-  const startSpeechRecognition = useCallback(() => {
-      console.log("startSpeechRecognition: before")
-      SpeechRecognition.startListening()
-      console.log("startSpeechRecognition: after")
-      console.log(listening)
-  },[listening])
-
   useEffect(() => {
 
         if (activeTab === 1) {
@@ -104,7 +97,7 @@ export default function Study() {
           console.log("splits:", transSplits)
           if (transSplits.length === 0 && currentWordIndex !== 0){
             console.log("paused... after matching")
-            startSpeechRecognition()
+            //startSpeechRecognition()
             return
           }
           let increase = 0
@@ -129,12 +122,12 @@ export default function Study() {
             resetTranscript();
           }
 
-          startSpeechRecognition()
+          // startSpeechRecognition()
         } else if (activeTab === 2) {
           // Only update for final results in test mode
           setTestSubmission(spokenText)
         }
-  }, [activeTab, spokenText, currentWordIndex, resetTranscript, startSpeechRecognition])
+  }, [activeTab, spokenText, currentWordIndex, resetTranscript])
 
   useEffect(() => {
     setSpokenText("")
