@@ -98,7 +98,7 @@ const Search = (props) => {
                     handleVerse({id: result.id, bibleId: result.bibleId, content: result.text})
                 }}
                 >
-                choose
+                pick
                 </Button>
                 <p>{result.text}</p>
             </div>;
