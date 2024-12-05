@@ -100,7 +100,7 @@ const Search = (props) => {
                 >
                 pick
                 </Button>
-                <p>{result.text}</p>
+                <p>{result.text} - {result.reference}</p>
             </div>;
             })
           }
