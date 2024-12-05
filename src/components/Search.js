@@ -69,7 +69,14 @@ const Search = (props) => {
   }, [verse])
 
   return (
-  <>
+  <div id="searchModal">
+      <div id="searchModalHeader">
+        <FormControl className="searchFieldFormControl">
+            <InputLabel htmlFor="search-field">Search</InputLabel>
+            <Input id="search-field" aria-describedby="search-help" value={search} onChange={handleSearchChange}/>
+            <FormHelperText id="search-help">Search for a scripture</FormHelperText>
+        </FormControl>
+        
         <Button
           id="qsSearchBtn"
           color="primary"
@@ -78,21 +85,27 @@ const Search = (props) => {
         >
           X
         </Button>
-        <FormControl>
-            <InputLabel htmlFor="search-field">Search</InputLabel>
-            <Input id="search-field" aria-describedby="search-help" value={search} onChange={handleSearchChange}/>
-            <FormHelperText id="search-help">Search for a scripture</FormHelperText>
-            <div>
-              {
-                results.map((result) => {
-                  return <p key={result.id} onClick={() => {
+      </div>
+        
+        <div>
+          {
+            results.map((result) => {
+              return <div key={result.id} className="scriptureElement">
+                <Button
+                  color="primary"
+                  className="btn-margin"
+                  onClick={() => {
                     handleVerse({id: result.id, bibleId: result.bibleId, content: result.text})
-                }}>{result.text}</p>;
-                })
-              }
-            </div>
-        </FormControl>
-  </>
+                }}
+                >
+                choose
+                </Button>
+                <p>{result.text}</p>
+            </div>;
+            })
+          }
+        </div>
+  </div>
   )
 }
 
