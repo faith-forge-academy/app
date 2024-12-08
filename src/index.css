@@ -28,12 +28,12 @@ code {
 #searchModalHeader {
   display: flex;
   justify-content: space-between;
-  align-items: start;
+  align-items: flex-start;
 }
 
 .scriptureElement {
   display: flex;
-  align-items: start;
+  align-items: flex-start;
   border-bottom: solid 1px #DDD;
   padding: 1em 0 0;
 }
