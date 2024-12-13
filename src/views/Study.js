@@ -24,7 +24,7 @@ const scripture = {
 }
 
 // Simple word-by-word comparison function
-function compareWords(original: string, spoken: string): { correct: boolean; word: string }[] {
+function compareWords(original, spoken) {
   const originalWords = original.split(/\s+/)
   const spokenWords = spoken.toLowerCase().split(/\s+/)
   return originalWords.map((word, index) => ({
@@ -67,8 +67,9 @@ export default function Study() {
     listening,
     resetTranscript,
   } = useSpeechRecognition();
+  
   const v = useSelector((state) => { return state.verse});
-  console.log(v);
+  
   if (v !== {} && v.id !== undefined && v.content !== undefined){
     scripture.reference = v.id;
     scripture.text = v.content;
@@ -85,34 +86,52 @@ export default function Study() {
   const [currentWordIndex, setCurrentWordIndex] = useState(0)
   const [testSubmission, setTestSubmission] = useState("")
   const [testResult, setTestResult] = useState([])
+  const [allSpoken, setAllSpoken] = useState("")
+  const [scripturePhrases, setScripturePhrases] = useState([])
+  const [phraseIndex, setPhraseIndex] = useState(0)
 
   useEffect(() => {
 
         if (activeTab === 1) {
           console.log("spokenText:", spokenText)
           let transSplits = []
+          let increase = 0
+
+          setScripturePhrases(scripture.text.split(/[.,/#!$%^&*;:{}=\-_`~()]/gu))
+
           if(spokenText !== ""){
             transSplits = spokenText.trim().split(/\s+/)
+
+            if (spokenText.toLocaleLowerCase == scripturePhrases[phraseIndex].toLocaleLowerCase) {
+              setPhraseIndex(phraseIndex + 1)
+            }
           }
           console.log("splits:", transSplits)
-          if (transSplits.length === 0 && currentWordIndex !== 0){
-            console.log("paused... after matching")
+          
+          //if (transSplits.length === 0 && currentWordIndex !== 0){
+          //  console.log("paused... after matching")
             //startSpeechRecognition()
-            return
-          }
-          let increase = 0
+          //  return
+          //}
+        
           console.log(currentWordIndex)
-          for (let i in transSplits){
+          
+          for (let i in transSplits) {
             const curr = transSplits[i].toLowerCase()
             const currentWord = scripture.splitText[currentWordIndex + increase].toLowerCase()
+            
             console.log(curr, currentWord, currentWordIndex, curr === currentWord)
+            
             if (curr === currentWord){
               increase++
+              setAllSpoken(allSpoken + ` ${currentWord}`)
+              
             } else {
               console.log("hmmm...")
               break
             }
           }
+
           if(increase !== 0){
             console.log("increasing currentWordIndex by "+ increase)
             setCurrentWordIndex(prev => Math.min(prev + increase, scripture.splitText.length - 1))
@@ -145,7 +164,7 @@ export default function Study() {
       SpeechRecognition.stopListening()
     } else {
       console.log("toggleListening: false")
-      SpeechRecognition.startListening()
+      SpeechRecognition.startListening({continuous: true})
     }
   }
 
@@ -195,8 +214,12 @@ export default function Study() {
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </div>
+                <div>
+                  {allSpoken}
+                </div>
                 <div className="text-center text-2xl font-bold p-4 border rounded">
-                  {scripture.text.split(/\s+/)[currentWordIndex]}
+                  {/*scripture.text.split(/\s+/)[currentWordIndex]*/}
+                  {scripturePhrases[phraseIndex]}
                 </div>
                 <Button onClick={toggleListening} variant="outline" className="w-full">
                   {listening ? <MicOff className="mr-2 h-4 w-4" /> : <Mic className="mr-2 h-4 w-4" />}
