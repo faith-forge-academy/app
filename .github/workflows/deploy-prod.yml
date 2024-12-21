@@ -1,0 +1,53 @@
+on:
+  push:
+    tags:
+    - '*'
+jobs:
+  deploy:
+    permissions:
+      id-token: write
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Setup Node
+        uses: actions/setup-node@v2
+        with:
+          node-version: "20"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: arn:aws:iam::${{secrets.AWS_ACCOUNT_ID}}:role/gh-actions-role
+          aws-region: us-east-1
+
+      - id: install-aws-cli
+        uses: unfor19/install-aws-cli-action@v1
+        with:
+          version: 2                         # default
+          verbose: false                     # default
+          arch: amd64                        # allowed values: amd64, arm64
+
+      - name: Deploy with CloudFormation
+        id: cfn-stack
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          name: cloudformation
+          template: stack.yml
+          no-fail-on-empty-changeset: "1"
+          parameter-overrides: >-
+            Environment=prod
+
+      - name: Install NPM Dependencies
+        run: npm install
+
+      - name: Build App
+        run: npm run build
+
+      - name: Deploy App to S3
+        run: aws s3 sync build s3://beta.faithforge.academy --delete
+
+      - name: Invalidate Cloudfront
+        run: aws cloudfront create-invalidation --distribution-id E3PDCMQPHWN9JK --region us-east-1 --path "/*"
