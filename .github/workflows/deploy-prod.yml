@@ -50,4 +50,4 @@ jobs:
         run: aws s3 sync build s3://app.faithforge.academy --delete
 
       - name: Invalidate Cloudfront
-        run: aws cloudfront create-invalidation --distribution-id E3PDCMQPHWN9JK --region us-east-1 --path "/*"
+        run: aws cloudfront create-invalidation --distribution-id EVZ7E0MHUGY34 --region us-east-1 --path "/*"
