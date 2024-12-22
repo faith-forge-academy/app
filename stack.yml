@@ -86,7 +86,7 @@ Resources:
             Resource: !Sub "${S3Bucket.Arn}/*"
             Condition:
               StringEquals:
-                AWS:SourceArn: !Sub "arn:aws:cloudfront::Id-of-IAM-User:distribution/${CloudFrontDistribution}"
+                AWS:SourceArn: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${CloudFrontDistribution}"
           - Effect: Deny
             Principal: '*'
             Action: 's3:*'
