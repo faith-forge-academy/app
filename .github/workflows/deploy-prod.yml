@@ -39,7 +39,8 @@ jobs:
           no-fail-on-empty-changeset: "1"
           parameter-overrides: >-
             Environment=prod
-
+      - name: Copy prod_auth_config.json
+        run: cp src/prod_auth_config.json src/auth_config.json
       - name: Install NPM Dependencies
         run: npm install
 
