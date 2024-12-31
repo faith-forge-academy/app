@@ -21,6 +21,35 @@ code {
   color: #dc2626
 }
 
+#searchModal {
+  padding: 2rem
+}
+
+#searchModalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.scriptureElement {
+  display: flex;
+  align-items: flex-start;
+  padding: .5em 0 0;
+}
+
+.scriptureElement p {
+  padding: 1em;
+  border: solid 2px #DDD;
+  box-shadow: 2px 2px 4px 1px rgba(200, 200, 200, 0.25);
+  border-radius: 4px;
+  cursor: pointer;
+  width: 100%;
+}
+
+.searchFieldFormControl {
+  width: 16em;
+}
+
 #scriptureInput {
   width: 100%;
 }
