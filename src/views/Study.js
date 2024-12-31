@@ -216,14 +216,6 @@ export default function Study() {
     setTestResult(compareWords(scripture.text, testSubmission))
   }
 
-  const nextWord = () => {
-    setCurrentWordIndex(prev => Math.min(prev + 1, scripture.text.split(/\s+/).length - 1))
-  }
-
-  const prevWord = () => {
-    setCurrentWordIndex(prev => Math.max(prev - 1, 0))
-  }
-
   const handleTabChange = (e, newValue) => {
     setActiveTab(newValue);
   }
