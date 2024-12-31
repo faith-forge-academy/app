@@ -38,7 +38,7 @@ function compareWords(original, spoken) {
 }
 
 function stripPunctuation(str){
-    str = str.replaceAll(/[.,/#!$%^&*;:{}=\-_`~()]/gu, '').toLowerCase()
+    str = str.replaceAll(/[^\w\s]+/gu, '').toLowerCase()
     
     return str
 }
@@ -120,7 +120,8 @@ export default function Study() {
             let scriptureWordInstance;
 
             if(spokenText !== ""){
-                transSplits = spokenText.trim().split(/\s+/)
+                let cleanspokenText = stripPunctuation(spokenText);
+                transSplits = cleanspokenText.trim().split(/\s+/)
             }
 
             for (let i in transSplits) {
@@ -136,7 +137,7 @@ export default function Study() {
                   nextPhrase = nextWord.phrase;
                 }
 
-                // console.log(curr, currentWord, wordCounter, curr === currentWord)
+                console.log(curr, currentWord, wordCounter, curr === currentWord)
                 
                 if (curr === currentWord){
                     scriptureWordInstance.said = true;
