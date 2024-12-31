@@ -217,7 +217,7 @@ export default function Study() {
       wordObj.phrase == phraseIndex ? <span
         key={wordObj.idx}
         style={{
-          color: (wordObj.said) ? '#00DD00' : '#CCCCCC',
+          color: (wordObj.said) ? '#000000' : '#CCCCCC',
           paddingRight: '4px'
         }}
       >
