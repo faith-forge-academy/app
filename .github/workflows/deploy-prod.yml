@@ -1,4 +1,7 @@
-on: [push, workflow_dispatch]
+on:
+  push:
+    tags:
+    - '*'
 jobs:
   deploy:
     permissions:
@@ -31,11 +34,11 @@ jobs:
         id: cfn-stack
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
-          name: faithforgeacademy-beta
+          name: faithforgeacademy-prod
           template: stack.yml
           no-fail-on-empty-changeset: "1"
           parameter-overrides: >-
-            Environment=beta
+            Environment=prod
 
       - name: Install NPM Dependencies
         run: npm install
@@ -44,7 +47,7 @@ jobs:
         run: npm run build
 
       - name: Deploy App to S3
-        run: aws s3 sync build s3://beta.faithforge.academy --delete
+        run: aws s3 sync build s3://app.faithforge.academy --delete
 
       - name: Invalidate Cloudfront
-        run: aws cloudfront create-invalidation --distribution-id E1CNNMC03JD2EN --region us-east-1 --path "/*"
+        run: aws cloudfront create-invalidation --distribution-id EVZ7E0MHUGY34 --region us-east-1 --path "/*"
