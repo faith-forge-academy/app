@@ -228,6 +228,22 @@ export default function Study() {
     setActiveTab(newValue);
   }
 
+  function getPhrase(phraseIndex) {
+    const requestedPhrase = scriptureWordCollection.map((wordObj) =>
+      wordObj.phrase == phraseIndex ? <span
+        key={wordObj.idx}
+        style={{
+          color: (wordObj.said) ? '#00DD00' : '#CCCCCC',
+          paddingRight: '4px'
+        }}
+      >
+        {wordObj.word}
+      </span> : ""
+    );
+
+    return requestedPhrase;
+  }
+  
   return (
     <>
         <Tabs value={activeTab} onChange={handleTabChange}>
@@ -245,25 +261,15 @@ export default function Study() {
               <h1>Word-by-Word Practice</h1>
               <p>Practice the scripture word by word</p>
               <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <Button onClick={prevWord} disabled={currentWordIndex === 0}>
-                    <ArrowLeft className="mr-2 h-4 w-4" />
-                    Previous
-                  </Button>
-                  <span className="text-sm text-muted-foreground">
-                    Word {currentWordIndex + 1} of {scripture.text.split(/\s+/).length}
-                  </span>
-                  <Button onClick={nextWord} disabled={currentWordIndex === scripture.text.split(/\s+/).length - 1}>
-                    Next
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </div>
-                <div>
-                  {allSpoken}
-                </div>
                 <div className="text-center text-2xl font-bold p-4 border rounded">
-                  {/*scripture.text.split(/\s+/)[currentWordIndex]*/}
-                  {scripturePhrases[phraseIndex]}
+                  {
+                    phraseNums.map((phraseNum) => 
+                      phraseNum <= phraseIndex ?
+                      <div>
+                        {getPhrase(phraseNum)}
+                      </div> : ""
+                    )
+                  }
                 </div>
                 <Button onClick={toggleListening} variant="outline" className="w-full">
                   {listening ? <MicOff className="mr-2 h-4 w-4" /> : <Mic className="mr-2 h-4 w-4" />}
