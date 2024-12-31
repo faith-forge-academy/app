@@ -15,6 +15,7 @@ import Typography from '@mui/material/Typography';
 import { useSelector, useDispatch } from "react-redux";
 import {setGlobalPhrase} from '../features/phraseSlice.js';
 import { Mic, MicOff, Check } from "lucide-react"
+import { setGlobalWordCollection, setWordCollectionInstance } from "../features/wordCollectionSlice.js";
 
 // Mock scripture data (replace with actual data in a real application)
 const scripture = {
@@ -131,8 +132,14 @@ export default function Study() {
     let [wordCounter, setWordCounter] = useState(0)
     const [testSubmission, setTestSubmission] = useState("")
     const [testResult, setTestResult] = useState([])
-    let [phraseIndex, setPhraseIndex] = useState(useSelector((state) => {return state.phrase}));
-    let scriptureWordCollection = createWordsCollection(scripture.text);
+    let [phraseIndex, setPhraseIndex] = useState(useSelector((state) => {return state.phrase}));    
+    let scriptureWordCollection = useSelector((state) => {return state.wordCollection});
+    
+    if (typeof scriptureWordCollection == 'object' && Array.isArray(scriptureWordCollection) && scriptureWordCollection.length == 0) {
+      scriptureWordCollection = createWordsCollection(scripture.text);
+      dispatch(setGlobalWordCollection(scriptureWordCollection));
+    }
+    
     let phraseCount = scriptureWordCollection[scriptureWordCollection.length - 1].phrase;
     let phraseNums = [];
 
@@ -149,6 +156,7 @@ export default function Study() {
             let transSplits = []
             let increase = 0
             let nextPhrase = 1;
+            let scriptureWordInstance;
 
             if(spokenText !== ""){
                 transSplits = spokenText.trim().split(/\s+/)
@@ -161,15 +169,16 @@ export default function Study() {
                 
                 let nextI = wordCounter + 1;
                 let nextWord = scriptureWordCollection[`${nextI}`];
+                scriptureWordInstance = {...scriptureWordCollection[wordCounter]};
 
                 if (typeof nextWord != 'undefined') {
                   nextPhrase = nextWord.phrase;
                 }
 
-                console.log(curr, currentWord, wordCounter, curr === currentWord)
+                // console.log(curr, currentWord, wordCounter, curr === currentWord)
                 
                 if (curr === currentWord){
-                    scriptureWordCollection[wordCounter].said = true;
+                    scriptureWordInstance.said = true;
 
                     dispatch(setGlobalPhrase(nextPhrase));
                     setPhraseIndex(nextPhrase);
@@ -188,6 +197,8 @@ export default function Study() {
                 if (parseInt(i) === transSplits.length - 1) {
                   setWordCounter(wordCounter++);
                 }
+
+                dispatch(setWordCollectionInstance(scriptureWordInstance));
             }
 
             if(increase !== 0){
@@ -201,7 +212,7 @@ export default function Study() {
             // Only update for final results in test mode
             setTestSubmission(spokenText)
         }
-  }, [activeTab, spokenText, currentWordIndex, resetTranscript, dispatch, scriptureWordCollection, wordCounter])
+  }, [activeTab, spokenText, currentWordIndex, resetTranscript, dispatch])
 
   /**
    * This useEffect watches for when the active tab changes value and resets
