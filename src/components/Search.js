@@ -7,8 +7,10 @@ import axios from "axios";
 import { useDispatch } from "react-redux";
 import { close } from '../features/openSlice';
 import { setGlobalVerse } from '../features/verseSlice.js';
+import { setGlobalWordCollection } from "../features/wordCollectionSlice.js";
 import { Button } from "reactstrap";
-
+import createWordsCollection from '../utils/appUtils.js';
+import {setGlobalPhrase} from '../features/phraseSlice.js';
 
 const Search = (props) => {
   const dispatch = useDispatch();
@@ -54,7 +56,10 @@ const Search = (props) => {
   }
 
   const handleVerse = (verse) => {
+    let scriptureWordCollection = createWordsCollection(verse.content);
     dispatch(setGlobalVerse(verse));
+    dispatch(setGlobalWordCollection(scriptureWordCollection));
+    dispatch(setGlobalPhrase(1));
     setVerse(verse);
     dispatch(close())
   }
