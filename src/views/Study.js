@@ -14,6 +14,7 @@ import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import { useSelector, useDispatch } from "react-redux";
 import {setGlobalPhrase} from '../features/phraseSlice.js';
+import { Mic, MicOff, Check } from "lucide-react"
 
 // Mock scripture data (replace with actual data in a real application)
 const scripture = {
@@ -105,21 +106,39 @@ function createWordsCollection(scriptureText) {
 
 export default function Study() {
     const dispatch = useDispatch();
+    const {
+        finalTranscript,
+        listening,
+        resetTranscript,
+    } = useSpeechRecognition();
   
-  const v = useSelector((state) => { return state.verse});
+    const v = useSelector((state) => { return state.verse});
   
-  if (v !== {} && v.id !== undefined && v.content !== undefined){
-    scripture.reference = v.id;
-    scripture.text = v.content;
-  } else if (window.localStorage.getItem("verse")){
-    const v = JSON.parse(window.localStorage.getItem("verse"))
-    scripture.reference = v.id;
-    scripture.text = v.content;
-  }
+    if (v !== {} && v.id !== undefined && v.content !== undefined){
+        scripture.reference = v.id;
+        scripture.text = v.content;
+    } else if (window.localStorage.getItem("verse")){
+        const v = JSON.parse(window.localStorage.getItem("verse"))
+        scripture.reference = v.id;
+        scripture.text = v.content;
+    }
 
+    scripture.replacedText = stripPunctuation(scripture.text)
+    scripture.splitText = scripture.replacedText.split(/\s+/)
+    const [activeTab, setActiveTab] = useState(0)
+    const [spokenText, setSpokenText] = useState("")
+    let [currentWordIndex, setCurrentWordIndex] = useState(0)
     let [wordCounter, setWordCounter] = useState(0)
+    const [testSubmission, setTestSubmission] = useState("")
+    const [testResult, setTestResult] = useState([])
     let [phraseIndex, setPhraseIndex] = useState(useSelector((state) => {return state.phrase}));
     let scriptureWordCollection = createWordsCollection(scripture.text);
+    let phraseCount = scriptureWordCollection[scriptureWordCollection.length - 1].phrase;
+    let phraseNums = [];
+
+    for (let i = 1; i <= phraseCount; i++) {
+      phraseNums.push(i);
+    }
 
     useEffect(() => {
 
