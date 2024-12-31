@@ -34,12 +34,16 @@ code {
 .scriptureElement {
   display: flex;
   align-items: flex-start;
-  border-bottom: solid 1px #DDD;
-  padding: 1em 0 0;
+  padding: .5em 0 0;
 }
 
 .scriptureElement p {
-  padding: 0 0 0 1em;
+  padding: 1em;
+  border: solid 2px #DDD;
+  box-shadow: 2px 2px 4px 1px rgba(200, 200, 200, 0.25);
+  border-radius: 4px;
+  cursor: pointer;
+  width: 100%;
 }
 
 .searchFieldFormControl {

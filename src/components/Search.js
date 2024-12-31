@@ -91,16 +91,11 @@ const Search = (props) => {
           {
             results.map((result) => {
               return <div key={result.id} className="scriptureElement">
-                <Button
-                  color="primary"
-                  className="btn-margin"
-                  onClick={() => {
-                    handleVerse({id: result.id, bibleId: result.bibleId, content: result.text})
-                }}
-                >
-                pick
-                </Button>
-                <p>{result.text} - {result.reference}</p>
+                <p
+                onClick={() => {
+                  handleVerse({id: result.id, bibleId: result.bibleId, content: result.text})
+              }}
+                >{result.text} - {result.reference}</p>
             </div>;
             })
           }
