@@ -12,8 +12,8 @@ import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
-import { useSelector } from "react-redux";
-import { Mic, MicOff, Check, ArrowRight, ArrowLeft } from "lucide-react"
+import { useSelector, useDispatch } from "react-redux";
+import {setGlobalPhrase} from '../features/phraseSlice.js';
 
 // Mock scripture data (replace with actual data in a real application)
 const scripture = {
@@ -104,11 +104,7 @@ function createWordsCollection(scriptureText) {
 }
 
 export default function Study() {
-  const {
-    finalTranscript,
-    listening,
-    resetTranscript,
-  } = useSpeechRecognition();
+    const dispatch = useDispatch();
   
   const v = useSelector((state) => { return state.verse});
   
@@ -121,65 +117,72 @@ export default function Study() {
     scripture.text = v.content;
   }
 
+    let [wordCounter, setWordCounter] = useState(0)
+    let [phraseIndex, setPhraseIndex] = useState(useSelector((state) => {return state.phrase}));
     let scriptureWordCollection = createWordsCollection(scripture.text);
 
-  useEffect(() => {
+    useEffect(() => {
 
+        // If we are on the practice tab
         if (activeTab === 1) {
-          console.log("spokenText:", spokenText)
-          let transSplits = []
-          let increase = 0
+            console.log("spokenText:", spokenText)
+            
+            let transSplits = []
+            let increase = 0
+            let nextPhrase = 1;
 
-          setScripturePhrases(scripture.text.split(/[.,/#!$%^&*;:{}=\-_`~()]/gu))
-
-          if(spokenText !== ""){
-            transSplits = spokenText.trim().split(/\s+/)
-
-            if (spokenText.toLocaleLowerCase == scripturePhrases[phraseIndex].toLocaleLowerCase) {
-              setPhraseIndex(phraseIndex + 1)
+            if(spokenText !== ""){
+                transSplits = spokenText.trim().split(/\s+/)
             }
-          }
-          console.log("splits:", transSplits)
-          
-          //if (transSplits.length === 0 && currentWordIndex !== 0){
-          //  console.log("paused... after matching")
-            //startSpeechRecognition()
-          //  return
-          //}
-        
-          console.log(currentWordIndex)
-          
-          for (let i in transSplits) {
-            const curr = transSplits[i].toLowerCase()
-            const currentWord = scripture.splitText[currentWordIndex + increase].toLowerCase()
-            
-            console.log(curr, currentWord, currentWordIndex, curr === currentWord)
-            
-            if (curr === currentWord){
-              increase++
-              setAllSpoken(allSpoken + ` ${currentWord}`)
+
+            for (let i in transSplits) {
               
-            } else {
-              console.log("hmmm...")
-              break
+                const curr = transSplits[i].toLowerCase() //transSplits should just be a phrase or a subset of the overall array
+                const currentWord = scripture.splitText[wordCounter].toLowerCase(); // this is an array of all words in the passage
+                
+                let nextI = wordCounter + 1;
+                let nextWord = scriptureWordCollection[`${nextI}`];
+
+                if (typeof nextWord != 'undefined') {
+                  nextPhrase = nextWord.phrase;
+                }
+
+                console.log(curr, currentWord, wordCounter, curr === currentWord)
+                
+                if (curr === currentWord){
+                    scriptureWordCollection[wordCounter].said = true;
+
+                    dispatch(setGlobalPhrase(nextPhrase));
+                    setPhraseIndex(nextPhrase);
+
+                    increase++
+
+                    setCurrentWordIndex(currentWordIndex + parseInt(i));
+                    setWordCounter(wordCounter++);
+                } else {
+                    // need to display something more useful to the user
+                    console.log("hmmm...")
+                    break
+                }
+
+                // increment again for the last word in the sub-array...
+                if (parseInt(i) === transSplits.length - 1) {
+                  setWordCounter(wordCounter++);
+                }
             }
-          }
 
-          if(increase !== 0){
-            console.log("increasing currentWordIndex by "+ increase)
-            setCurrentWordIndex(prev => Math.min(prev + increase, scripture.splitText.length - 1))
-            setSpokenText("")
-            resetTranscript();
-          } else {
-            resetTranscript();
-          }
+            if(increase !== 0){
+                setSpokenText("")
+                resetTranscript();
+            } else {
+                resetTranscript();
+            }
 
-          // startSpeechRecognition()
         } else if (activeTab === 2) {
-          // Only update for final results in test mode
-          setTestSubmission(spokenText)
+            // Only update for final results in test mode
+            setTestSubmission(spokenText)
         }
-  }, [activeTab, spokenText, currentWordIndex, resetTranscript])
+  }, [activeTab, spokenText, currentWordIndex, resetTranscript, dispatch, scriptureWordCollection, wordCounter])
 
   /**
    * This useEffect watches for when the active tab changes value and resets
