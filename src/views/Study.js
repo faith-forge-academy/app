@@ -25,40 +25,42 @@ const scripture = {
 
 // Simple word-by-word comparison function
 function compareWords(original, spoken) {
-  const originalWords = original.split(/\s+/)
-  const spokenWords = spoken.toLowerCase().split(/\s+/)
-  return originalWords.map((word, index) => ({
-    correct: index < spokenWords.length && replaceText(word) === replaceText(spokenWords[index]),
-    word: word
-  }))
+    const originalWords = original.split(/\s+/)
+    const spokenWords = spoken.toLowerCase().split(/\s+/)
+    
+    return originalWords.map((word, index) => ({
+        correct: index < spokenWords.length && stripPunctuation(word) === stripPunctuation(spokenWords[index]),
+        word: word
+    }))
 }
 
-function replaceText(str){
-  str = str.replaceAll(/[.,/#!$%^&*;:{}=\-_`~()]/gu, '').toLowerCase()
-  return str
+function stripPunctuation(str){
+    str = str.replaceAll(/[.,/#!$%^&*;:{}=\-_`~()]/gu, '').toLowerCase()
+    
+    return str
 }
 
 function CustomTabPanel(props) {
-  const { children, value, index, ...other } = props;
+    const { children, value, index, ...other } = props;
 
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`simple-tabpanel-${index}`}
-      aria-labelledby={`simple-tab-${index}`}
-      {...other}
-    >
-      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
-    </div>
+    return (
+        <div
+            role="tabpanel"
+            hidden={value !== index}
+            id={`simple-tabpanel-${index}`}
+            aria-labelledby={`simple-tab-${index}`}
+            {...other}
+        >
+            {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
+        </div>
   );
 }
 
 function a11yProps(index) {
-  return {
-    id: `simple-tab-${index}`,
-    'aria-controls': `simple-tabpanel-${index}`,
-  };
+    return {
+        id: `simple-tab-${index}`,
+        'aria-controls': `simple-tabpanel-${index}`,
+    };
 }
 
 /**
@@ -179,12 +181,20 @@ export default function Study() {
         }
   }, [activeTab, spokenText, currentWordIndex, resetTranscript])
 
+  /**
+   * This useEffect watches for when the active tab changes value and resets
+   * spoken text, test result, and test submission
+   */
   useEffect(() => {
     setSpokenText("")
     setTestResult([])
     setTestSubmission("")
   }, [activeTab])
 
+  /**
+   * This useEffect watches for a change in the finalTranscript variable and
+   * sets the spokenText state to the final transcript value
+   */
   useEffect(() => {
     setSpokenText(finalTranscript)
   }, [finalTranscript])
