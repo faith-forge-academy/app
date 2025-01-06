@@ -235,70 +235,70 @@ export default function Study() {
             <Tab label="Practice" {...a11yProps(1)} />
             <Tab label="Test" {...a11yProps(2)} />
         </Tabs>
-    <Card className="w-full max-w-3xl mx-auto">
-      <CardContent>
-          <CustomTabPanel value={activeTab} index={0}> 
-              <p>{scripture.text}</p>
-              <p>{scripture.reference}</p>
-          </CustomTabPanel>
-          <CustomTabPanel value={activeTab} index={1}>
-              <h1>Word-by-Word Practice</h1>
-              <p>Practice the scripture word by word</p>
-              <div className="space-y-4">
-                <div className="text-center text-2xl font-bold p-4 border rounded">
-                  {
-                    phraseNums.map((phraseNum) => 
-                      phraseNum <= phraseIndex ?
-                      <div>
-                        {getPhrase(phraseNum)}
-                      </div> : ""
-                    )
-                  }
-                </div>
-                <Button onClick={toggleListening} variant="outline" className="w-full">
-                  {listening ? <MicOff className="mr-2 h-4 w-4" /> : <Mic className="mr-2 h-4 w-4" />}
-                  {listening ? "Stop" : "Start"} Listening
+        <Card className="w-full max-w-3xl mx-auto">
+            <CardContent>
+                <CustomTabPanel value={activeTab} index={0}> 
+                    <p>{scripture.text}</p>
+                    <p>{scripture.reference}</p>
+                </CustomTabPanel>
+                <CustomTabPanel value={activeTab} index={1}>
+                    <h1>Word-by-Word Practice</h1>
+                    <p>Practice the scripture word by word</p>
+                    <div className="space-y-4">
+                        <div className="text-center text-2xl font-bold p-4 border rounded">
+                        {
+                            phraseNums.map((phraseNum) => 
+                            phraseNum <= phraseIndex ?
+                            <div>
+                                {getPhrase(phraseNum)}
+                            </div> : ""
+                            )
+                        }
+                        </div>
+                        <Button onClick={toggleListening} variant="outline" className="w-full">
+                        {listening ? <MicOff className="mr-2 h-4 w-4" /> : <Mic className="mr-2 h-4 w-4" />}
+                        {listening ? "Stop" : "Start"} Listening
+                        </Button>
+                    </div>
+                </CustomTabPanel>
+                <CustomTabPanel value={activeTab} index={2}>
+                    <h1>Memorization Test</h1>
+                    <p>Type or speak the scripture from memory and check your accuracy</p>
+                    <div className="space-y-4">
+                        <Typography>
+                            {testResult.map((result, index) => (
+                            <span
+                                key={index}
+                                className={`inline-block mr-1 ${
+                                result.correct ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
+                                }`}
+                            >
+                                {result.word}
+                            </span>
+                            ))}
+                        </Typography>
+                        <textarea id="scriptureInput" placeholder="type the scripture here..." className="min-h-[100px]"
+                        onChange={(e) => {setTestSubmission(e.target.value)}} value={testSubmission} ></textarea>
+                        <div className="flex justify-between">
+                            <Button onClick={toggleListening} variant="outline">
+                                {listening ? <MicOff className="mr-2 h-4 w-4" /> : <Mic className="mr-2 h-4 w-4" />}
+                                {listening ? "Stop" : "Start"} Listening
+                            </Button>
+                            <Button onClick={handleTestSubmit}>
+                                <Check className="mr-2 h-4 w-4" />
+                                Check Answer
+                            </Button>
+                        </div>
+                    </div>
+                </CustomTabPanel>
+            </CardContent>
+            <CardActions className="flex justify-between">
+                <Button variant="outline" onClick={() => setActiveTab(0)}>Back to Reading</Button>
+                <Button onClick={() => setActiveTab(activeTab === 0 ? 1 : activeTab === 1 ? 2 : 0)}>
+                Next Mode
                 </Button>
-              </div>
-          </CustomTabPanel>
-          <CustomTabPanel value={activeTab} index={2}>
-              <h1>Memorization Test</h1>
-              <p>Type or speak the scripture from memory and check your accuracy</p>
-              <div className="space-y-4">
-              <Typography>
-                    {testResult.map((result, index) => (
-                      <span
-                        key={index}
-                        className={`inline-block mr-1 ${
-                          result.correct ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
-                        }`}
-                      >
-                        {result.word}
-                      </span>
-                    ))}
-              </Typography>
-              <textarea id="scriptureInput" placeholder="type the scripture here..." className="min-h-[100px]"
-                onChange={(e) => {setTestSubmission(e.target.value)}} value={testSubmission} ></textarea>
-                <div className="flex justify-between">
-                  <Button onClick={toggleListening} variant="outline">
-                    {listening ? <MicOff className="mr-2 h-4 w-4" /> : <Mic className="mr-2 h-4 w-4" />}
-                    {listening ? "Stop" : "Start"} Listening
-                  </Button>
-                  <Button onClick={handleTestSubmit}>
-                    <Check className="mr-2 h-4 w-4" />
-                    Check Answer
-                  </Button>
-                </div>
-              </div>
-          </CustomTabPanel>
-      </CardContent>
-      <CardActions className="flex justify-between">
-        <Button variant="outline" onClick={() => setActiveTab(0)}>Back to Reading</Button>
-        <Button onClick={() => setActiveTab(activeTab === 0 ? 1 : activeTab === 1 ? 2 : 0)}>
-          Next Mode
-        </Button>
-      </CardActions>
-    </Card>
+            </CardActions>
+        </Card>
     </>
   );
 }
