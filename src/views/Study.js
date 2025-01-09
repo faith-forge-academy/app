@@ -109,73 +109,61 @@ export default function Study() {
       phraseNums.push(i);
     }
 
-    useEffect(() => {
+    let transSplits = [];
+    let nextPhrase = 1;
+    let scriptureWordInstance;
 
-        // If we are on the practice tab
-        if (activeTab === 1) {
-            console.log("spokenText:", spokenText)
-            
-            let transSplits = []
-            let increase = 0
-            let nextPhrase = 1;
-            let scriptureWordInstance;
+    if (typeof finalTranscript == 'string' && finalTranscript !== ""){
+        let cleanfinalTranscript = stripPunctuation(finalTranscript);
+        transSplits = cleanfinalTranscript.trim().split(/\s+/)
+    }
 
-            if(spokenText !== ""){
-                let cleanspokenText = stripPunctuation(spokenText);
-                transSplits = cleanspokenText.trim().split(/\s+/)
-            }
+    for (let i in transSplits) {
+      
+        const curr = transSplits[i].toLowerCase() //transSplits should just be a phrase or a subset of the overall array
+        const currentWord = scripture.splitText[wordCounter].toLowerCase(); // this is an array of all words in the passage
+        
+        let nextI = wordCounter + 1;
+        let prevI = wordCounter - 1;
+        let prevWord = scriptureWordCollection[`${prevI}`];
+        let nextWord = scriptureWordCollection[`${nextI}`];
+        scriptureWordInstance = {...scriptureWordCollection[wordCounter]};
 
-            for (let i in transSplits) {
-              
-                const curr = transSplits[i].toLowerCase() //transSplits should just be a phrase or a subset of the overall array
-                const currentWord = scripture.splitText[wordCounter].toLowerCase(); // this is an array of all words in the passage
-                
-                let nextI = wordCounter + 1;
-                let nextWord = scriptureWordCollection[`${nextI}`];
-                scriptureWordInstance = {...scriptureWordCollection[wordCounter]};
-
-                if (typeof nextWord != 'undefined') {
-                  nextPhrase = nextWord.phrase;
-                }
-
-                console.log(curr, currentWord, wordCounter, curr === currentWord)
-                
-                if (curr === currentWord){
-                    scriptureWordInstance.said = true;
-
-                    dispatch(setGlobalPhrase(nextPhrase));
-                    setPhraseIndex(nextPhrase);
-
-                    increase++
-
-                    setCurrentWordIndex(currentWordIndex + parseInt(i));
-                    setWordCounter(wordCounter++);
-                } else {
-                    // need to display something more useful to the user
-                    console.log("hmmm...")
-                    break
-                }
-
-                // increment again for the last word in the sub-array...
-                if (parseInt(i) === transSplits.length - 1) {
-                  setWordCounter(wordCounter++);
-                }
-
-                dispatch(setWordCollectionInstance(scriptureWordInstance));
-            }
-
-            if(increase !== 0){
-                setSpokenText("")
-                resetTranscript();
-            } else {
-                resetTranscript();
-            }
-
-        } else if (activeTab === 2) {
-            // Only update for final results in test mode
-            setTestSubmission(spokenText)
+        if (typeof prevWord != 'undefined') {
+          
+          if (prevWord['phrase'] < scriptureWordInstance['phrase']) {
+              setSpokenText("");
+              resetTranscript();
+          }
         }
-  }, [activeTab, spokenText, currentWordIndex, resetTranscript, dispatch])
+
+        if (typeof nextWord != 'undefined') {
+          nextPhrase = nextWord.phrase;
+        }
+
+        console.log(curr, currentWord, wordCounter, curr === currentWord)
+        
+        if (curr === currentWord){
+            scriptureWordInstance.said = true;
+
+            dispatch(setGlobalPhrase(nextPhrase));
+            setPhraseIndex(nextPhrase);
+
+            setCurrentWordIndex(currentWordIndex + parseInt(i));
+            setWordCounter(wordCounter++);
+        } else {
+            // need to display something more useful to the user
+            console.log("hmmm...")
+            break
+        }
+
+        // increment again for the last word in the sub-array...
+        if (parseInt(i) === transSplits.length - 1) {
+          setWordCounter(wordCounter++);
+        }
+
+        dispatch(setWordCollectionInstance(scriptureWordInstance));
+    }
 
   /**
    * This useEffect watches for when the active tab changes value and resets
@@ -186,14 +174,6 @@ export default function Study() {
     setTestResult([])
     setTestSubmission("")
   }, [activeTab])
-
-  /**
-   * This useEffect watches for a change in the finalTranscript variable and
-   * sets the spokenText state to the final transcript value
-   */
-  useEffect(() => {
-    setSpokenText(finalTranscript)
-  }, [finalTranscript])
 
   const toggleListening = () => {
     if (listening) {
