@@ -28,7 +28,7 @@ function createWordsCollection(scriptureText) {
 
         currentWordObject.phrase = currentPhrase;
         
-        if (currentWord.match(/[.,/#!$%^&*;:{}=\-_`~()]/gu)) {
+        if (currentWord.match(/[.,/#!$%^&*;:{}=\-_`~()?]/gu)) {
             currentPhrase++
         }
 
