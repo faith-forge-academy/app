@@ -71,9 +71,10 @@ export default function Study() {
     const {
         finalTranscript,
         listening,
-        resetTranscript,
+        resetTranscript
     } = useSpeechRecognition();
-  
+
+    const [spokenText, setSpokenText] = useState(useSelector((state) => { return state.verse}))
     const v = useSelector((state) => { return state.verse});
   
     if (v !== {} && v.id !== undefined && v.content !== undefined){
@@ -88,14 +89,14 @@ export default function Study() {
     scripture.replacedText = stripPunctuation(scripture.text)
     scripture.splitText = scripture.replacedText.split(/\s+/)
     const [activeTab, setActiveTab] = useState(0)
-    const [spokenText, setSpokenText] = useState(useSelector((state) => { return state.verse}))
+    
     let [currentWordIndex, setCurrentWordIndex] = useState(0)
     let [wordCounter, setWordCounter] = useState(0)
     const [testSubmission, setTestSubmission] = useState("")
     const [testResult, setTestResult] = useState([])
     let [phraseIndex, setPhraseIndex] = useState(useSelector((state) => {return state.phrase}));    
     let scriptureWordCollection = useSelector((state) => {return state.wordCollection});
-    
+
     if (typeof scriptureWordCollection == 'object' && Array.isArray(scriptureWordCollection) && scriptureWordCollection.length == 0) {
       scriptureWordCollection = createWordsCollection(scripture.text);
       dispatch(setGlobalWordCollection(scriptureWordCollection));
