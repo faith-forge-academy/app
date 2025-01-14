@@ -112,6 +112,8 @@ export default function Study() {
     let transSplits = [];
     let nextPhrase = 1;
     let scriptureWordInstance;
+    let currentWord;
+    let curr;
 
     if (typeof finalTranscript == 'string' && finalTranscript !== ""){
         let cleanfinalTranscript = stripPunctuation(finalTranscript);
@@ -120,8 +122,11 @@ export default function Study() {
 
     for (let i in transSplits) {
       
-        const curr = transSplits[i].toLowerCase() //transSplits should just be a phrase or a subset of the overall array
-        const currentWord = scripture.splitText[wordCounter].toLowerCase(); // this is an array of all words in the passage
+        curr = transSplits[i].toLowerCase() //transSplits should just be a phrase or a subset of the overall array
+        
+        if (typeof scripture.splitText[wordCounter] == 'string') {
+          currentWord = scripture.splitText[wordCounter].toLowerCase(); // this is an array of all words in the passage
+        }
         
         let nextI = wordCounter + 1;
         let prevI = wordCounter - 1;
