@@ -115,6 +115,9 @@ export default function Study() {
     }
 
 
+    // finalTranscript comes from the useSpeechRecognition hook and is
+    // split on a space to create a transSplits array that consists of the words
+    // in the currently spoken phrase
     if (typeof finalTranscript == 'string' && finalTranscript !== ""){
         let cleanfinalTranscript = stripPunctuation(finalTranscript);
         transSplits = cleanfinalTranscript.trim().split(/\s+/)
@@ -126,6 +129,7 @@ export default function Study() {
         let prevWord = scriptureWordCollection[`${prevI}`];
         let nextWord = scriptureWordCollection[`${nextI}`];
       
+        // curr is the most recently spoken word
         curr = transSplits[i].toLowerCase() //transSplits should just be a phrase or a subset of the overall array
         
         if (typeof scripture.splitText[wordCounter] == 'string') {
@@ -136,18 +140,28 @@ export default function Study() {
 
         if (typeof prevWord != 'undefined') {
           
+          // phrase is a number here. If the previous word's phrase number is
+          // smaller than the current word's phrase number, it means the phrase
+          // number has incremented and the transcript needs to be reset to
+          // continue picking up the next phrase
           if (prevWord['phrase'] < scriptureWordInstance['phrase']) {
               setSpokenText("");
               resetTranscript();
           }
         }
 
+        // This is to keep track of the next word's phrase number which will either
+        // be the same as the current word OR will be one more.
         if (typeof nextWord != 'undefined') {
           nextPhrase = nextWord.phrase;
         }
 
         console.log(curr, currentWord, wordCounter, curr === currentWord)
         
+        
+        // If the spoken word matches the corresponding scripture word, set the
+        // word's said property to true, set the phrase redux value to the next
+        // phrase, and increment the word index and counter.
         if (curr === currentWord){
             scriptureWordInstance.said = true;
 
@@ -167,6 +181,8 @@ export default function Study() {
           setWordCounter(wordCounter++);
         }
 
+        // Updates the word collection with the modified version of the
+        // scriptureWordInstance
         dispatch(setWordCollectionInstance(scriptureWordInstance));
     }
 
