@@ -76,6 +76,20 @@ export default function Study() {
 
     const [spokenText, setSpokenText] = useState(useSelector((state) => { return state.verse}))
     const v = useSelector((state) => { return state.verse});
+    const [activeTab, setActiveTab] = useState(0)
+    let [currentWordIndex, setCurrentWordIndex] = useState(0)
+    let [wordCounter, setWordCounter] = useState(0)
+    const [testSubmission, setTestSubmission] = useState("")
+    const [testResult, setTestResult] = useState([])
+    let [phraseIndex, setPhraseIndex] = useState(useSelector((state) => {return state.phrase}));    
+    let scriptureWordCollection = useSelector((state) => {return state.wordCollection});
+    let phraseCount = 0;
+    let phraseNums = [];
+    let transSplits = [];
+    let nextPhrase = 1;
+    let scriptureWordInstance;
+    let currentWord;
+    let curr;
   
     if (v !== {} && v.id !== undefined && v.content !== undefined){
         scripture.reference = v.id;
@@ -88,32 +102,18 @@ export default function Study() {
 
     scripture.replacedText = stripPunctuation(scripture.text)
     scripture.splitText = scripture.replacedText.split(/\s+/)
-    const [activeTab, setActiveTab] = useState(0)
     
-    let [currentWordIndex, setCurrentWordIndex] = useState(0)
-    let [wordCounter, setWordCounter] = useState(0)
-    const [testSubmission, setTestSubmission] = useState("")
-    const [testResult, setTestResult] = useState([])
-    let [phraseIndex, setPhraseIndex] = useState(useSelector((state) => {return state.phrase}));    
-    let scriptureWordCollection = useSelector((state) => {return state.wordCollection});
-
     if (typeof scriptureWordCollection == 'object' && Array.isArray(scriptureWordCollection) && scriptureWordCollection.length == 0) {
       scriptureWordCollection = createWordsCollection(scripture.text);
       dispatch(setGlobalWordCollection(scriptureWordCollection));
     }
     
-    let phraseCount = scriptureWordCollection[scriptureWordCollection.length - 1].phrase;
-    let phraseNums = [];
+    phraseCount = scriptureWordCollection[scriptureWordCollection.length - 1].phrase;
 
     for (let i = 1; i <= phraseCount; i++) {
       phraseNums.push(i);
     }
 
-    let transSplits = [];
-    let nextPhrase = 1;
-    let scriptureWordInstance;
-    let currentWord;
-    let curr;
 
     if (typeof finalTranscript == 'string' && finalTranscript !== ""){
         let cleanfinalTranscript = stripPunctuation(finalTranscript);
@@ -121,6 +121,10 @@ export default function Study() {
     }
 
     for (let i in transSplits) {
+        let nextI = wordCounter + 1;
+        let prevI = wordCounter - 1;
+        let prevWord = scriptureWordCollection[`${prevI}`];
+        let nextWord = scriptureWordCollection[`${nextI}`];
       
         curr = transSplits[i].toLowerCase() //transSplits should just be a phrase or a subset of the overall array
         
@@ -128,10 +132,6 @@ export default function Study() {
           currentWord = scripture.splitText[wordCounter].toLowerCase(); // this is an array of all words in the passage
         }
         
-        let nextI = wordCounter + 1;
-        let prevI = wordCounter - 1;
-        let prevWord = scriptureWordCollection[`${prevI}`];
-        let nextWord = scriptureWordCollection[`${nextI}`];
         scriptureWordInstance = {...scriptureWordCollection[wordCounter]};
 
         if (typeof prevWord != 'undefined') {
