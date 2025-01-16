@@ -29,7 +29,7 @@ const scripture = {
 // Simple word-by-word comparison function
 function compareWords(original, spoken) {
     const originalWords = original.split(/\s+/)
-    const spokenWords = spoken.toLowerCase().split(/\s+/)
+    const spokenWords = spoken.trim().toLowerCase().split(/\s+/)
     
     return originalWords.map((word, index) => ({
         correct: index < spokenWords.length && stripPunctuation(word) === stripPunctuation(spokenWords[index]),
