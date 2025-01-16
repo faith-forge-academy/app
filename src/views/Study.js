@@ -16,6 +16,7 @@ import { useSelector, useDispatch } from "react-redux";
 import {setGlobalPhrase} from '../features/phraseSlice.js';
 import { Mic, MicOff, Check } from "lucide-react"
 import { setGlobalWordCollection, setWordCollectionInstance } from "../features/wordCollectionSlice.js";
+import { setSpokenText } from "../features/spokenTextSlice.js";
 import createWordsCollection from '../utils/appUtils.js';
 
 // Mock scripture data (replace with actual data in a real application)
@@ -130,6 +131,8 @@ export default function Study() {
       
         // curr is the most recently spoken word
         curr = transSplits[i].toLowerCase() //transSplits should just be a phrase or a subset of the overall array
+
+        dispatch(setSpokenText(curr));
         
         if (typeof scripture.splitText[wordCounter] == 'string') {
           currentWord = scripture.splitText[wordCounter].toLowerCase(); // this is an array of all words in the passage
@@ -183,6 +186,14 @@ export default function Study() {
         // scriptureWordInstance
         dispatch(setWordCollectionInstance(scriptureWordInstance));
     }
+
+  let userSpokenText  = useSelector((state) => {
+    return state.spokenText;
+  })
+
+  useEffect(() => {
+    setTestSubmission(userSpokenText);
+  }, [userSpokenText])
 
   /**
    * This useEffect watches for when the active tab changes value and resets
