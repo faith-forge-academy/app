@@ -74,7 +74,6 @@ export default function Study() {
         resetTranscript
     } = useSpeechRecognition();
 
-    const [spokenText, setSpokenText] = useState(useSelector((state) => { return state.verse}))
     const v = useSelector((state) => { return state.verse});
     const [activeTab, setActiveTab] = useState(0)
     let [currentWordIndex, setCurrentWordIndex] = useState(0)
@@ -145,7 +144,6 @@ export default function Study() {
           // number has incremented and the transcript needs to be reset to
           // continue picking up the next phrase
           if (prevWord['phrase'] < scriptureWordInstance['phrase']) {
-              setSpokenText("");
               resetTranscript();
           }
         }
@@ -191,7 +189,6 @@ export default function Study() {
    * spoken text, test result, and test submission
    */
   useEffect(() => {
-    setSpokenText("")
     setTestResult([])
     setTestSubmission("")
   }, [activeTab])
