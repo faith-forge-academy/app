@@ -215,7 +215,9 @@ export default function Study() {
   }
 
   const handleTestSubmit = () => {
-    setTestResult(compareWords(scripture.text, testSubmission))
+    let submissionValue = document.getElementById('scriptureInput').value;
+
+    setTestResult(compareWords(scripture.text, submissionValue));
   }
 
   const handleTabChange = (e, newValue) => {
