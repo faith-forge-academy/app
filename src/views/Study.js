@@ -113,7 +113,7 @@ export default function Study() {
     scripture.replacedText = stripPunctuation(scripture.text)
     scripture.splitText = scripture.replacedText.split(/\s+/)
     
-    if (typeof scriptureWordCollection == 'object' && Array.isArray(scriptureWordCollection) && scriptureWordCollection.length == 0) {
+    if (typeof scriptureWordCollection == 'object' && Array.isArray(scriptureWordCollection) && scriptureWordCollection.length === 0) {
       scriptureWordCollection = createWordsCollection(scripture.text);
       dispatch(setGlobalWordCollection(scriptureWordCollection));
     }
