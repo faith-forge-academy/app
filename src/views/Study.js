@@ -90,6 +90,16 @@ export default function Study() {
     let scriptureWordInstance;
     let currentWord;
     let curr;
+
+    const toggleListening = () => {
+      if (listening) {
+        console.log("toggleListening: true")
+        SpeechRecognition.stopListening()
+      } else {
+        console.log("toggleListening: false")
+        SpeechRecognition.startListening({continuous: true})
+      }
+    }
   
     if (v !== {} && v.id !== undefined && v.content !== undefined){
         scripture.reference = v.id;
@@ -203,16 +213,6 @@ export default function Study() {
     setTestResult([])
     setTestSubmission("")
   }, [activeTab])
-
-  const toggleListening = () => {
-    if (listening) {
-      console.log("toggleListening: true")
-      SpeechRecognition.stopListening()
-    } else {
-      console.log("toggleListening: false")
-      SpeechRecognition.startListening({continuous: true})
-    }
-  }
 
   const handleTestSubmit = () => {
     let submissionValue = document.getElementById('scriptureInput').value;
