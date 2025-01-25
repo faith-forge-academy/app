@@ -184,6 +184,11 @@ export default function Study() {
         } else {
             // need to display something more useful to the user
             console.log("hmmm...")
+
+            // This is possibly temporary until I can find a better solution.
+            // It resets the transcript so we don't enter an infinite loop
+            resetTranscript();
+            toggleListening();
             break
         }
 
