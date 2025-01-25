@@ -231,7 +231,7 @@ export default function Study() {
 
   function getPhrase(phraseIndex) {
     const requestedPhrase = scriptureWordCollection.map((wordObj) =>
-      wordObj.phrase == phraseIndex ? <span
+      wordObj.phrase === phraseIndex ? <span
         key={wordObj.idx}
         style={{
           color: (wordObj.said) ? '#000000' : '#CCCCCC',
