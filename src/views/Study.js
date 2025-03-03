@@ -12,8 +12,12 @@ import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
-import { useSelector } from "react-redux";
-import { Mic, MicOff, Check, ArrowRight, ArrowLeft } from "lucide-react"
+import { useSelector, useDispatch } from "react-redux";
+import {setGlobalPhrase} from '../features/phraseSlice.js';
+import { Mic, MicOff, Check } from "lucide-react"
+import { setGlobalWordCollection, setWordCollectionInstance } from "../features/wordCollectionSlice.js";
+import { setSpokenText } from "../features/spokenTextSlice.js";
+import createWordsCollection from '../utils/appUtils.js';
 
 // Mock scripture data (replace with actual data in a real application)
 const scripture = {
@@ -24,147 +28,223 @@ const scripture = {
 }
 
 // Simple word-by-word comparison function
-function compareWords(original: string, spoken: string): { correct: boolean; word: string }[] {
-  const originalWords = original.split(/\s+/)
-  const spokenWords = spoken.toLowerCase().split(/\s+/)
-  return originalWords.map((word, index) => ({
-    correct: index < spokenWords.length && replaceText(word) === replaceText(spokenWords[index]),
-    word: word
-  }))
+function compareWords(original, spoken) {
+    const originalWords = original.split(/\s+/)
+    const spokenWords = spoken.trim().toLowerCase().split(/\s+/)
+    
+    return originalWords.map((word, index) => ({
+        correct: index < spokenWords.length && stripPunctuation(word) === stripPunctuation(spokenWords[index]),
+        word: word
+    }))
 }
 
-function replaceText(str){
-  str = str.replaceAll(/[.,/#!$%^&*;:{}=\-_`~()]/gu, '').toLowerCase()
-  return str
+function stripPunctuation(str){
+    str = str.replaceAll(/[^\w\s]+/gu, '').toLowerCase()
+    
+    return str
 }
 
 function CustomTabPanel(props) {
-  const { children, value, index, ...other } = props;
+    const { children, value, index, ...other } = props;
 
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`simple-tabpanel-${index}`}
-      aria-labelledby={`simple-tab-${index}`}
-      {...other}
-    >
-      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
-    </div>
+    return (
+        <div
+            role="tabpanel"
+            hidden={value !== index}
+            id={`simple-tabpanel-${index}`}
+            aria-labelledby={`simple-tab-${index}`}
+            {...other}
+        >
+            {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
+        </div>
   );
 }
 
 function a11yProps(index) {
-  return {
-    id: `simple-tab-${index}`,
-    'aria-controls': `simple-tabpanel-${index}`,
-  };
+    return {
+        id: `simple-tab-${index}`,
+        'aria-controls': `simple-tabpanel-${index}`,
+    };
 }
 
 export default function Study() {
-  const {
-    finalTranscript,
-    listening,
-    resetTranscript,
-  } = useSpeechRecognition();
-  const v = useSelector((state) => { return state.verse});
-  console.log(v);
-  if (v !== {} && v.id !== undefined && v.content !== undefined){
-    scripture.reference = v.id;
-    scripture.text = v.content;
-  } else if (window.localStorage.getItem("verse")){
-    const v = JSON.parse(window.localStorage.getItem("verse"))
-    scripture.reference = v.id;
-    scripture.text = v.content;
-  }
+    const dispatch = useDispatch();
+    const {
+        finalTranscript,
+        listening,
+        resetTranscript
+    } = useSpeechRecognition();
 
-  scripture.replacedText = replaceText(scripture.text)
-  scripture.splitText = scripture.replacedText.split(/\s+/)
-  const [activeTab, setActiveTab] = useState(0)
-  const [spokenText, setSpokenText] = useState("")
-  const [currentWordIndex, setCurrentWordIndex] = useState(0)
-  const [testSubmission, setTestSubmission] = useState("")
-  const [testResult, setTestResult] = useState([])
+    const v = useSelector((state) => { return state.verse});
+    const [activeTab, setActiveTab] = useState(0)
+    let [currentWordIndex, setCurrentWordIndex] = useState(0)
+    let [wordCounter, setWordCounter] = useState(0)
+    const [testSubmission, setTestSubmission] = useState("")
+    const [testResult, setTestResult] = useState([])
+    let [phraseIndex, setPhraseIndex] = useState(useSelector((state) => {return state.phrase}));    
+    let scriptureWordCollection = useSelector((state) => {return state.wordCollection});
+    let phraseCount = 0;
+    let phraseNums = [];
+    let transSplits = [];
+    let nextPhrase = 1;
+    let scriptureWordInstance;
+    let currentWord;
+    let curr;
 
-  useEffect(() => {
+    const toggleListening = () => {
+      if (listening) {
+        console.log("toggleListening: true")
+        SpeechRecognition.stopListening()
+      } else {
+        console.log("toggleListening: false")
+        SpeechRecognition.startListening({continuous: true})
+      }
+    }
+  
+    if (v !== {} && v.id !== undefined && v.content !== undefined){
+        scripture.reference = v.id;
+        scripture.text = v.content;
+    } else if (window.localStorage.getItem("verse")){
+        const v = JSON.parse(window.localStorage.getItem("verse"))
+        scripture.reference = v.id;
+        scripture.text = v.content;
+    }
 
-        if (activeTab === 1) {
-          console.log("spokenText:", spokenText)
-          let transSplits = []
-          if(spokenText !== ""){
-            transSplits = spokenText.trim().split(/\s+/)
-          }
-          console.log("splits:", transSplits)
-          if (transSplits.length === 0 && currentWordIndex !== 0){
-            console.log("paused... after matching")
-            //startSpeechRecognition()
-            return
-          }
-          let increase = 0
-          console.log(currentWordIndex)
-          for (let i in transSplits){
-            const curr = transSplits[i].toLowerCase()
-            const currentWord = scripture.splitText[currentWordIndex + increase].toLowerCase()
-            console.log(curr, currentWord, currentWordIndex, curr === currentWord)
-            if (curr === currentWord){
-              increase++
-            } else {
-              console.log("hmmm...")
-              break
-            }
-          }
-          if(increase !== 0){
-            console.log("increasing currentWordIndex by "+ increase)
-            setCurrentWordIndex(prev => Math.min(prev + increase, scripture.splitText.length - 1))
-            setSpokenText("")
-            resetTranscript();
-          } else {
-            resetTranscript();
-          }
+    scripture.replacedText = stripPunctuation(scripture.text)
+    scripture.splitText = scripture.replacedText.split(/\s+/)
+    
+    if (typeof scriptureWordCollection == 'object' && Array.isArray(scriptureWordCollection) && scriptureWordCollection.length === 0) {
+      scriptureWordCollection = createWordsCollection(scripture.text);
+      dispatch(setGlobalWordCollection(scriptureWordCollection));
+    }
+    
+    phraseCount = scriptureWordCollection[scriptureWordCollection.length - 1].phrase;
 
-          // startSpeechRecognition()
-        } else if (activeTab === 2) {
-          // Only update for final results in test mode
-          setTestSubmission(spokenText)
+    for (let i = 1; i <= phraseCount; i++) {
+      phraseNums.push(i);
+    }
+
+
+    // finalTranscript comes from the useSpeechRecognition hook and is
+    // split on a space to create a transSplits array that consists of the words
+    // in the currently spoken phrase
+    if (typeof finalTranscript == 'string' && finalTranscript !== ""){
+        let cleanfinalTranscript = stripPunctuation(finalTranscript);
+        transSplits = cleanfinalTranscript.trim().split(/\s+/)
+    }
+
+    for (let i in transSplits) {
+        let nextI = wordCounter + 1;
+        let prevI = wordCounter - 1;
+        let prevWord = scriptureWordCollection[`${prevI}`];
+        let nextWord = scriptureWordCollection[`${nextI}`];
+      
+        // curr is the most recently spoken word
+        curr = transSplits[i].toLowerCase() //transSplits should just be a phrase or a subset of the overall array
+
+        dispatch(setSpokenText(curr));
+        
+        if (typeof scripture.splitText[wordCounter] == 'string') {
+          currentWord = scripture.splitText[wordCounter].toLowerCase(); // this is an array of all words in the passage
         }
-  }, [activeTab, spokenText, currentWordIndex, resetTranscript])
+        
+        scriptureWordInstance = {...scriptureWordCollection[wordCounter]};
+
+        if (typeof prevWord != 'undefined') {
+          
+          // phrase is a number here. If the previous word's phrase number is
+          // smaller than the current word's phrase number, it means the phrase
+          // number has incremented and the transcript needs to be reset to
+          // continue picking up the next phrase
+          if (prevWord['phrase'] < scriptureWordInstance['phrase']) {
+              resetTranscript();
+          }
+        }
+
+        // This is to keep track of the next word's phrase number which will either
+        // be the same as the current word OR will be one more.
+        if (typeof nextWord != 'undefined') {
+          nextPhrase = nextWord.phrase;
+        }
+
+        console.log(curr, currentWord, wordCounter, curr === currentWord)
+        
+        
+        // If the spoken word matches the corresponding scripture word, set the
+        // word's said property to true, set the phrase redux value to the next
+        // phrase, and increment the word index and counter.
+        if (curr === currentWord){
+            scriptureWordInstance.said = true;
+
+            dispatch(setGlobalPhrase(nextPhrase));
+            setPhraseIndex(nextPhrase);
+
+            setCurrentWordIndex(currentWordIndex + parseInt(i));
+            setWordCounter(wordCounter++);
+        } else {
+            // need to display something more useful to the user
+            console.log("hmmm...")
+
+            // This is possibly temporary until I can find a better solution.
+            // It resets the transcript so we don't enter an infinite loop
+            resetTranscript();
+            toggleListening();
+            break
+        }
+
+        // increment again for the last word in the sub-array...
+        if (parseInt(i) === transSplits.length - 1) {
+          setWordCounter(wordCounter++);
+        }
+
+        // Updates the word collection with the modified version of the
+        // scriptureWordInstance
+        dispatch(setWordCollectionInstance(scriptureWordInstance));
+    }
+
+  let userSpokenText  = useSelector((state) => {
+    return state.spokenText;
+  })
 
   useEffect(() => {
-    setSpokenText("")
+    setTestSubmission(userSpokenText);
+  }, [userSpokenText])
+
+  /**
+   * This useEffect watches for when the active tab changes value and resets
+   * spoken text, test result, and test submission
+   */
+  useEffect(() => {
     setTestResult([])
     setTestSubmission("")
   }, [activeTab])
 
-  useEffect(() => {
-    setSpokenText(finalTranscript)
-  }, [finalTranscript])
-
-  const toggleListening = () => {
-    if (listening) {
-      console.log("toggleListening: true")
-      SpeechRecognition.stopListening()
-    } else {
-      console.log("toggleListening: false")
-      SpeechRecognition.startListening()
-    }
-  }
-
   const handleTestSubmit = () => {
-    setTestResult(compareWords(scripture.text, testSubmission))
-  }
+    let submissionValue = document.getElementById('scriptureInput').value;
 
-  const nextWord = () => {
-    setCurrentWordIndex(prev => Math.min(prev + 1, scripture.text.split(/\s+/).length - 1))
-  }
-
-  const prevWord = () => {
-    setCurrentWordIndex(prev => Math.max(prev - 1, 0))
+    setTestResult(compareWords(scripture.text, submissionValue));
   }
 
   const handleTabChange = (e, newValue) => {
     setActiveTab(newValue);
   }
 
+  function getPhrase(phraseIndex) {
+    const requestedPhrase = scriptureWordCollection.map((wordObj) =>
+      wordObj.phrase === phraseIndex ? <span
+        key={wordObj.idx}
+        style={{
+          color: (wordObj.said) ? '#000000' : '#CCCCCC',
+          paddingRight: '4px'
+        }}
+      >
+        {wordObj.word}
+      </span> : ""
+    );
+
+    return requestedPhrase;
+  }
+  
   return (
     <>
         <Tabs value={activeTab} onChange={handleTabChange}>
@@ -172,76 +252,70 @@ export default function Study() {
             <Tab label="Practice" {...a11yProps(1)} />
             <Tab label="Test" {...a11yProps(2)} />
         </Tabs>
-    <Card className="w-full max-w-3xl mx-auto">
-      <CardContent>
-          <CustomTabPanel value={activeTab} index={0}> 
-              <p>{scripture.text}</p>
-              <p>{scripture.reference}</p>
-          </CustomTabPanel>
-          <CustomTabPanel value={activeTab} index={1}>
-              <h1>Word-by-Word Practice</h1>
-              <p>Practice the scripture word by word</p>
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <Button onClick={prevWord} disabled={currentWordIndex === 0}>
-                    <ArrowLeft className="mr-2 h-4 w-4" />
-                    Previous
-                  </Button>
-                  <span className="text-sm text-muted-foreground">
-                    Word {currentWordIndex + 1} of {scripture.text.split(/\s+/).length}
-                  </span>
-                  <Button onClick={nextWord} disabled={currentWordIndex === scripture.text.split(/\s+/).length - 1}>
-                    Next
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </div>
-                <div className="text-center text-2xl font-bold p-4 border rounded">
-                  {scripture.text.split(/\s+/)[currentWordIndex]}
-                </div>
-                <Button onClick={toggleListening} variant="outline" className="w-full">
-                  {listening ? <MicOff className="mr-2 h-4 w-4" /> : <Mic className="mr-2 h-4 w-4" />}
-                  {listening ? "Stop" : "Start"} Listening
+        <Card className="w-full max-w-3xl mx-auto">
+            <CardContent>
+                <CustomTabPanel value={activeTab} index={0}> 
+                    <p>{scripture.text}</p>
+                    <p>{scripture.reference}</p>
+                </CustomTabPanel>
+                <CustomTabPanel value={activeTab} index={1}>
+                    <h1>Word-by-Word Practice</h1>
+                    <p>Practice the scripture word by word</p>
+                    <div className="space-y-4">
+                        <div className="text-center text-2xl font-bold p-4 border rounded">
+                        {
+                            phraseNums.map((phraseNum) => 
+                            phraseNum <= phraseIndex ?
+                            <div>
+                                {getPhrase(phraseNum)}
+                            </div> : ""
+                            )
+                        }
+                        </div>
+                        <Button onClick={toggleListening} variant="outline" className="w-full">
+                        {listening ? <MicOff className="mr-2 h-4 w-4" /> : <Mic className="mr-2 h-4 w-4" />}
+                        {listening ? "Stop" : "Start"} Listening
+                        </Button>
+                    </div>
+                </CustomTabPanel>
+                <CustomTabPanel value={activeTab} index={2}>
+                    <h1>Memorization Test</h1>
+                    <p>Type or speak the scripture from memory and check your accuracy</p>
+                    <div className="space-y-4">
+                        <Typography>
+                            {testResult.map((result, index) => (
+                            <span
+                                key={index}
+                                className={`inline-block mr-1 ${
+                                result.correct ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
+                                }`}
+                            >
+                                {result.word}
+                            </span>
+                            ))}
+                        </Typography>
+                        <textarea id="scriptureInput" placeholder="type the scripture here..." className="min-h-[100px]"
+                        onChange={(e) => {setTestSubmission(e.target.value)}} value={testSubmission} ></textarea>
+                        <div className="flex justify-between">
+                            <Button onClick={toggleListening} variant="outline">
+                                {listening ? <MicOff className="mr-2 h-4 w-4" /> : <Mic className="mr-2 h-4 w-4" />}
+                                {listening ? "Stop" : "Start"} Listening
+                            </Button>
+                            <Button onClick={handleTestSubmit}>
+                                <Check className="mr-2 h-4 w-4" />
+                                Check Answer
+                            </Button>
+                        </div>
+                    </div>
+                </CustomTabPanel>
+            </CardContent>
+            <CardActions className="flex justify-between">
+                <Button variant="outline" onClick={() => setActiveTab(0)}>Back to Reading</Button>
+                <Button onClick={() => setActiveTab(activeTab === 0 ? 1 : activeTab === 1 ? 2 : 0)}>
+                Next Mode
                 </Button>
-              </div>
-          </CustomTabPanel>
-          <CustomTabPanel value={activeTab} index={2}>
-              <h1>Memorization Test</h1>
-              <p>Type or speak the scripture from memory and check your accuracy</p>
-              <div className="space-y-4">
-              <Typography>
-                    {testResult.map((result, index) => (
-                      <span
-                        key={index}
-                        className={`inline-block mr-1 ${
-                          result.correct ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
-                        }`}
-                      >
-                        {result.word}
-                      </span>
-                    ))}
-              </Typography>
-              <textarea id="scriptureInput" placeholder="type the scripture here..." className="min-h-[100px]"
-                onChange={(e) => {setTestSubmission(e.target.value)}} value={testSubmission} ></textarea>
-                <div className="flex justify-between">
-                  <Button onClick={toggleListening} variant="outline">
-                    {listening ? <MicOff className="mr-2 h-4 w-4" /> : <Mic className="mr-2 h-4 w-4" />}
-                    {listening ? "Stop" : "Start"} Listening
-                  </Button>
-                  <Button onClick={handleTestSubmit}>
-                    <Check className="mr-2 h-4 w-4" />
-                    Check Answer
-                  </Button>
-                </div>
-              </div>
-          </CustomTabPanel>
-      </CardContent>
-      <CardActions className="flex justify-between">
-        <Button variant="outline" onClick={() => setActiveTab(0)}>Back to Reading</Button>
-        <Button onClick={() => setActiveTab(activeTab === 0 ? 1 : activeTab === 1 ? 2 : 0)}>
-          Next Mode
-        </Button>
-      </CardActions>
-    </Card>
+            </CardActions>
+        </Card>
     </>
   );
 }
