@@ -1,6 +1,6 @@
 import React from "react";
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
 
@@ -63,98 +63,116 @@ function a11yProps(index) {
 
 export default function Study() {
   const {
+    transcript,
     finalTranscript,
     listening,
     resetTranscript,
   } = useSpeechRecognition();
-  const v = useSelector((state) => { return state.verse});
-  console.log(v);
-  if (v !== {} && v.id !== undefined && v.content !== undefined){
+
+  const v = useSelector((state) => state.verse);
+  if (v.id !== undefined && v.content !== undefined) {
     scripture.reference = v.id;
     scripture.text = v.content;
-  } else if (window.localStorage.getItem("verse")){
-    const v = JSON.parse(window.localStorage.getItem("verse"))
-    scripture.reference = v.id;
-    scripture.text = v.content;
+  } else if (window.localStorage.getItem("verse")) {
+    const stored = JSON.parse(window.localStorage.getItem("verse"))
+    scripture.reference = stored.id;
+    scripture.text = stored.content;
   }
 
   scripture.replacedText = replaceText(scripture.text)
   scripture.splitText = scripture.replacedText.split(/\s+/)
+
   const [activeTab, setActiveTab] = useState(0)
-  const [spokenText, setSpokenText] = useState("")
+  const [isListening, setIsListening] = useState(false)
+  // Ref so the iOS-restart effect always reads the current intent without causing re-runs
+  const shouldListenRef = useRef(false)
   const [currentWordIndex, setCurrentWordIndex] = useState(0)
   const [testSubmission, setTestSubmission] = useState("")
   const [testResult, setTestResult] = useState([])
 
+  // iOS workaround: Web Speech API stops after short pauses on iOS Safari even with
+  // continuous:true. Restart transparently whenever recognition ends while the user
+  // still wants the mic on.
   useEffect(() => {
+    if (!listening && shouldListenRef.current) {
+      SpeechRecognition.startListening({ continuous: true, interimResults: true })
+    }
+  }, [listening])
 
-        if (activeTab === 1) {
-          console.log("spokenText:", spokenText)
-          let transSplits = []
-          if(spokenText !== ""){
-            transSplits = spokenText.trim().split(/\s+/)
-          }
-          console.log("splits:", transSplits)
-          if (transSplits.length === 0 && currentWordIndex !== 0){
-            console.log("paused... after matching")
-            //startSpeechRecognition()
-            return
-          }
-          let increase = 0
-          console.log(currentWordIndex)
-          for (let i in transSplits){
-            const curr = transSplits[i].toLowerCase()
-            const currentWord = scripture.splitText[currentWordIndex + increase].toLowerCase()
-            console.log(curr, currentWord, currentWordIndex, curr === currentWord)
-            if (curr === currentWord){
-              increase++
-            } else {
-              console.log("hmmm...")
-              break
-            }
-          }
-          if(increase !== 0){
-            console.log("increasing currentWordIndex by "+ increase)
-            setCurrentWordIndex(prev => Math.min(prev + increase, scripture.splitText.length - 1))
-            setSpokenText("")
-            resetTranscript();
-          } else {
-            resetTranscript();
-          }
-
-          // startSpeechRecognition()
-        } else if (activeTab === 2) {
-          // Only update for final results in test mode
-          setTestSubmission(spokenText)
-        }
-  }, [activeTab, spokenText, currentWordIndex, resetTranscript])
-
+  // Stop the mic and reset all transient state whenever the user switches tabs.
   useEffect(() => {
-    setSpokenText("")
+    shouldListenRef.current = false
+    setIsListening(false)
+    SpeechRecognition.stopListening()
+    resetTranscript()
+    setCurrentWordIndex(0)
     setTestResult([])
     setTestSubmission("")
-  }, [activeTab])
+  }, [activeTab, resetTranscript])
 
+  // Practice mode: advance word index whenever finalTranscript contains the next word(s).
   useEffect(() => {
-    setSpokenText(finalTranscript)
-  }, [finalTranscript])
+    if (activeTab !== 1 || !finalTranscript) return
+
+    const transSplits = finalTranscript.trim().split(/\s+/)
+    let increase = 0
+    for (let i = 0; i < transSplits.length; i++) {
+      // Guard against running off the end of the verse
+      if (currentWordIndex + increase >= scripture.splitText.length) break
+      const curr = replaceText(transSplits[i])
+      const currentWord = scripture.splitText[currentWordIndex + increase]
+      if (curr === currentWord) {
+        increase++
+      } else {
+        break
+      }
+    }
+    if (increase !== 0) {
+      setCurrentWordIndex(prev => Math.min(prev + increase, scripture.splitText.length - 1))
+    }
+    resetTranscript()
+  }, [activeTab, finalTranscript, currentWordIndex, resetTranscript])
+
+  // Test mode: keep testSubmission in sync with finalized speech so Check Answer
+  // always has the latest spoken text.
+  useEffect(() => {
+    if (activeTab !== 2 || !finalTranscript) return
+    setTestSubmission(finalTranscript)
+  }, [activeTab, finalTranscript])
+
+  const startListeningSession = () => {
+    shouldListenRef.current = true
+    setIsListening(true)
+    resetTranscript()
+    SpeechRecognition.startListening({ continuous: true, interimResults: true })
+  }
+
+  const stopListeningSession = () => {
+    shouldListenRef.current = false
+    setIsListening(false)
+    SpeechRecognition.stopListening()
+  }
 
   const toggleListening = () => {
-    if (listening) {
-      console.log("toggleListening: true")
-      SpeechRecognition.stopListening()
+    if (isListening) {
+      stopListeningSession()
     } else {
-      console.log("toggleListening: false")
-      SpeechRecognition.startListening()
+      startListeningSession()
     }
   }
 
   const handleTestSubmit = () => {
-    setTestResult(compareWords(scripture.text, testSubmission))
+    // If the mic is still on, stop it and use whatever has been transcribed so far.
+    const textToCheck = isListening ? transcript : testSubmission
+    if (isListening) {
+      stopListeningSession()
+      setTestSubmission(transcript)
+    }
+    setTestResult(compareWords(scripture.text, textToCheck))
   }
 
   const nextWord = () => {
-    setCurrentWordIndex(prev => Math.min(prev + 1, scripture.text.split(/\s+/).length - 1))
+    setCurrentWordIndex(prev => Math.min(prev + 1, scripture.splitText.length - 1))
   }
 
   const prevWord = () => {
@@ -165,6 +183,10 @@ export default function Study() {
     setActiveTab(newValue);
   }
 
+  // While the mic is active show the live (including interim) transcript so the
+  // user gets real-time feedback. When stopped, show the editable saved text.
+  const testDisplayValue = isListening ? transcript : testSubmission
+
   return (
     <>
         <Tabs value={activeTab} onChange={handleTabChange}>
@@ -174,7 +196,7 @@ export default function Study() {
         </Tabs>
     <Card className="w-full max-w-3xl mx-auto">
       <CardContent>
-          <CustomTabPanel value={activeTab} index={0}> 
+          <CustomTabPanel value={activeTab} index={0}>
               <p>{scripture.text}</p>
               <p>{scripture.reference}</p>
           </CustomTabPanel>
@@ -188,9 +210,9 @@ export default function Study() {
                     Previous
                   </Button>
                   <span className="text-sm text-muted-foreground">
-                    Word {currentWordIndex + 1} of {scripture.text.split(/\s+/).length}
+                    Word {currentWordIndex + 1} of {scripture.splitText.length}
                   </span>
-                  <Button onClick={nextWord} disabled={currentWordIndex === scripture.text.split(/\s+/).length - 1}>
+                  <Button onClick={nextWord} disabled={currentWordIndex === scripture.splitText.length - 1}>
                     Next
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
@@ -199,8 +221,8 @@ export default function Study() {
                   {scripture.text.split(/\s+/)[currentWordIndex]}
                 </div>
                 <Button onClick={toggleListening} variant="outline" className="w-full">
-                  {listening ? <MicOff className="mr-2 h-4 w-4" /> : <Mic className="mr-2 h-4 w-4" />}
-                  {listening ? "Stop" : "Start"} Listening
+                  {isListening ? <MicOff className="mr-2 h-4 w-4" /> : <Mic className="mr-2 h-4 w-4" />}
+                  {isListening ? "Stop" : "Start"} Listening
                 </Button>
               </div>
           </CustomTabPanel>
@@ -221,11 +243,14 @@ export default function Study() {
                     ))}
               </Typography>
               <textarea id="scriptureInput" placeholder="type the scripture here..." className="min-h-[100px]"
-                onChange={(e) => {setTestSubmission(e.target.value)}} value={testSubmission} ></textarea>
+                onChange={(e) => { if (!isListening) setTestSubmission(e.target.value) }}
+                value={testDisplayValue}
+                readOnly={isListening}
+              ></textarea>
                 <div className="flex justify-between">
                   <Button onClick={toggleListening} variant="outline">
-                    {listening ? <MicOff className="mr-2 h-4 w-4" /> : <Mic className="mr-2 h-4 w-4" />}
-                    {listening ? "Stop" : "Start"} Listening
+                    {isListening ? <MicOff className="mr-2 h-4 w-4" /> : <Mic className="mr-2 h-4 w-4" />}
+                    {isListening ? "Stop" : "Start"} Listening
                   </Button>
                   <Button onClick={handleTestSubmit}>
                     <Check className="mr-2 h-4 w-4" />
