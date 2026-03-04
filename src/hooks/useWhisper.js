@@ -5,7 +5,7 @@ const devLog = (...args) => { if (isDev) console.log('[Whisper]', ...args); };
 
 // Each continuous-mode chunk is this long regardless of ambient noise level.
 // Longer = more context for Whisper (better accuracy), more latency before feedback.
-const CHUNK_DURATION_MS = 5000;
+const CHUNK_DURATION_MS = 7000;
 
 export function useWhisper() {
   const [isReady, setIsReady] = useState(false);
@@ -28,7 +28,7 @@ export function useWhisper() {
 
   // Spawn worker and load model on mount
   useEffect(() => {
-    const worker = new Worker(new URL('../whisperWorker.js', import.meta.url));
+    const worker = new Worker('/whisperWorker.js', { type: 'module' });
     workerRef.current = worker;
 
     worker.onmessage = (e) => {
