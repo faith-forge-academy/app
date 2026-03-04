@@ -30,7 +30,7 @@ self.addEventListener('message', async (e) => {
     }
   } else if (e.data.type === 'transcribe') {
     try {
-      const result = await transcriber(e.data.audio, { sampling_rate: e.data.sampling_rate || 16000 });
+      const result = await transcriber(e.data.audio, { sampling_rate: e.data.sampling_rate || 16000, language: 'english', task: 'transcribe' });
       self.postMessage({ type: 'transcript', text: result.text.trim() });
     } catch (err) {
       self.postMessage({ type: 'error', message: err.message });
