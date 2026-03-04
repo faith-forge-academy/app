@@ -22,6 +22,9 @@ export function useWhisper() {
   const continuousRef = useRef(false);
   const internalStartRef = useRef(null);
   const chunkTimerRef = useRef(null);
+  // Persistent AudioContext created during the user-gesture (button tap) so iOS
+  // Safari doesn't block it when we later use it inside the async onstop callback.
+  const audioCtxRef = useRef(null);
 
   // Spawn worker and load model on mount
   useEffect(() => {
@@ -53,6 +56,9 @@ export function useWhisper() {
       worker.terminate();
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((t) => t.stop());
+      }
+      if (audioCtxRef.current) {
+        audioCtxRef.current.close();
       }
     };
   }, []);
@@ -108,15 +114,17 @@ export function useWhisper() {
       const blob = new Blob(capturedChunks, { type: recorder.mimeType });
       const arrayBuffer = await blob.arrayBuffer();
       try {
-        const decodeCtx = new AudioContext({ sampleRate: 16000 });
-        const decoded = await decodeCtx.decodeAudioData(arrayBuffer);
+        // Reuse the AudioContext that was created during the button-tap gesture.
+        // Creating a new one here (async, outside a gesture) is blocked on iOS Safari.
+        const ctx = audioCtxRef.current;
+        const decoded = await ctx.decodeAudioData(arrayBuffer);
         const float32 = decoded.getChannelData(0);
-        devLog('sending to worker — samples: %d, duration: %ss', float32.length, (float32.length / 16000).toFixed(2));
+        const samplingRate = ctx.sampleRate;
+        devLog('sending to worker — samples: %d, duration: %ss, sampleRate: %d', float32.length, (float32.length / samplingRate).toFixed(2), samplingRate);
         workerRef.current.postMessage(
-          { type: 'transcribe', audio: float32 },
+          { type: 'transcribe', audio: float32, sampling_rate: samplingRate },
           [float32.buffer]
         );
-        await decodeCtx.close();
       } catch (err) {
         console.error('Audio decode error:', err);
         setIsProcessing(false);
@@ -148,6 +156,18 @@ export function useWhisper() {
       shouldListenRef.current = true;
       continuousRef.current = continuous;
       setFinalTranscript('');
+
+      // Create (or reuse) the AudioContext here, synchronously inside the user-gesture
+      // call stack. iOS Safari blocks AudioContext creation in async callbacks.
+      // webkitAudioContext covers iOS < 12; modern iOS uses AudioContext directly.
+      if (!audioCtxRef.current || audioCtxRef.current.state === 'closed') {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        audioCtxRef.current = new AC({ sampleRate: 16000 });
+      }
+      if (audioCtxRef.current.state === 'suspended') {
+        audioCtxRef.current.resume();
+      }
+
       startRecordingSession();
     },
     [startRecordingSession]
