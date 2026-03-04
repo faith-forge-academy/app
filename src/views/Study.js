@@ -220,48 +220,60 @@ export default function Study() {
                 )}
               </div>
 
-              {/* Karaoke / sing-along word display */}
-              <div style={{
-                fontSize: '1.2rem',
-                lineHeight: 2,
-                padding: '16px',
-                border: '1px solid #e0e0e0',
-                borderRadius: 8,
-                background: '#fafafa',
-                marginBottom: 16,
+              {/* Karaoke / sing-along word display — extra bottom margin on mobile to clear the fixed control bar */}
+              <Box sx={{ mb: { xs: 10, sm: 2 } }}>
+                <div style={{
+                  fontSize: '1.2rem',
+                  lineHeight: 2,
+                  padding: '16px',
+                  border: '1px solid #e0e0e0',
+                  borderRadius: 8,
+                  background: '#fafafa',
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: '6px',
+                }}>
+                  {practiceWords.map((word, i) => {
+                    const isDone = i < currentWordIndex
+                    const isCurrent = i === currentWordIndex && !isComplete
+
+                    return (
+                      <span
+                        key={i}
+                        ref={isCurrent ? currentWordRef : null}
+                        style={{
+                          padding: isCurrent ? '2px 4px' : undefined,
+                          borderRadius: isCurrent ? 4 : undefined,
+                          background: isCurrent ? '#fef08a' : undefined,
+                          color: isDone ? '#16a34a' : isCurrent ? '#713f12' : '#9ca3af',
+                          fontWeight: isCurrent ? 700 : isDone ? 500 : 400,
+                          transition: 'color 0.2s, background 0.2s',
+                        }}
+                      >
+                        {word}
+                      </span>
+                    )
+                  })}
+                </div>
+              </Box>
+
+              {/* Controls — fixed to bottom on mobile, inline on desktop */}
+              <Box sx={{
                 display: 'flex',
-                flexWrap: 'wrap',
-                gap: '6px',
+                gap: 1,
+                position: { xs: 'fixed', sm: 'static' },
+                bottom: { xs: 0, sm: 'auto' },
+                left: { xs: 0, sm: 'auto' },
+                right: { xs: 0, sm: 'auto' },
+                p: { xs: 2, sm: 0 },
+                bgcolor: { xs: 'background.paper', sm: 'transparent' },
+                borderTop: { xs: '1px solid #e0e0e0', sm: 'none' },
+                zIndex: { xs: 1200, sm: 'auto' },
               }}>
-                {practiceWords.map((word, i) => {
-                  const isDone = i < currentWordIndex
-                  const isCurrent = i === currentWordIndex && !isComplete
-
-                  return (
-                    <span
-                      key={i}
-                      ref={isCurrent ? currentWordRef : null}
-                      style={{
-                        padding: isCurrent ? '2px 4px' : undefined,
-                        borderRadius: isCurrent ? 4 : undefined,
-                        background: isCurrent ? '#fef08a' : undefined,
-                        color: isDone ? '#16a34a' : isCurrent ? '#713f12' : '#9ca3af',
-                        fontWeight: isCurrent ? 700 : isDone ? 500 : 400,
-                        transition: 'color 0.2s, background 0.2s',
-                      }}
-                    >
-                      {word}
-                    </span>
-                  )
-                })}
-              </div>
-
-              {/* Controls */}
-              <div style={{ display: 'flex', gap: 8 }}>
                 <Button
                   onClick={toggleListening}
                   variant="outlined"
-                  style={{ flex: 1 }}
+                  sx={{ flex: 1 }}
                   disabled={!isReady || isComplete}
                 >
                   {isSessionActive ? <MicOff style={{ marginRight: 8, width: 16, height: 16 }} /> : <Mic style={{ marginRight: 8, width: 16, height: 16 }} />}
@@ -275,7 +287,7 @@ export default function Study() {
                   <RotateCcw style={{ marginRight: 8, width: 16, height: 16 }} />
                   Reset
                 </Button>
-              </div>
+              </Box>
           </CustomTabPanel>
 
           <CustomTabPanel value={activeTab} index={2}>
