@@ -229,6 +229,9 @@ export default function Study() {
                 borderRadius: 8,
                 background: '#fafafa',
                 marginBottom: 16,
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: '6px',
               }}>
                 {practiceWords.map((word, i) => {
                   const isDone = i < currentWordIndex
@@ -239,7 +242,6 @@ export default function Study() {
                       key={i}
                       ref={isCurrent ? currentWordRef : null}
                       style={{
-                        marginRight: 6,
                         padding: isCurrent ? '2px 4px' : undefined,
                         borderRadius: isCurrent ? 4 : undefined,
                         background: isCurrent ? '#fef08a' : undefined,
