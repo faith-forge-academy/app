@@ -5,7 +5,7 @@ const devLog = (...args) => { if (isDev) console.log('[Whisper]', ...args); };
 
 // Each continuous-mode chunk is this long regardless of ambient noise level.
 // Longer = more context for Whisper (better accuracy), more latency before feedback.
-const CHUNK_DURATION_MS = 5000;
+const CHUNK_DURATION_MS = 10000;
 
 export function useWhisper() {
   const [isReady, setIsReady] = useState(false);
