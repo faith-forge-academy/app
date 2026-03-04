@@ -4,10 +4,10 @@
   "private": true,
   "scripts": {
     "start": "npm-run-all --parallel spa",
-    "build": "CI=false react-scripts build",
-    "test": "react-scripts test",
+    "build": "craco build",
+    "test": "craco test",
     "eject": "react-scripts eject",
-    "spa": "react-scripts start",
+    "spa": "craco start",
     "server": "node server.js",
     "server:dev": "nodemon server.js",
     "api-server": "node api-server.js",
@@ -49,6 +49,7 @@
     "typescript": "^4.9"
   },
   "devDependencies": {
+    "@craco/craco": "^7.1.0",
     "@testing-library/jest-dom": "^5.17",
     "@testing-library/react": "^14.1",
     "jest-environment-jsdom": "^27.0",

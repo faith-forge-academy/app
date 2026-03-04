@@ -25,7 +25,7 @@ export function useWhisper() {
 
   // Spawn worker and load model on mount
   useEffect(() => {
-    const worker = new Worker(new URL('../whisperWorker.js', import.meta.url));
+    const worker = new Worker('/whisperWorker.js', { type: 'module' });
     workerRef.current = worker;
 
     worker.onmessage = (e) => {
