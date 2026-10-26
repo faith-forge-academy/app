@@ -1,99 +1,219 @@
-import React, { useState, useEffect } from 'react';
-import FormControl from '@mui/material/FormControl';
-import InputLabel from '@mui/material/InputLabel';
-import Input from '@mui/material/Input';
-import FormHelperText from '@mui/material/FormHelperText';
-import axios from "axios";
-import { useDispatch } from "react-redux";
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
+import Typography from '@mui/material/Typography';
+import { useDispatch } from 'react-redux';
 import { close } from '../features/openSlice';
 import { setGlobalVerse } from '../features/verseSlice.js';
-import { Button } from "reactstrap";
+import history from '../utils/history';
+import {
+  highlightParts,
+  normalizeSearchResults,
+  resultSummary,
+  snippetAroundMatch,
+} from '../utils/scriptureSearch';
 
+const BIBLE_ID = '72f4e6dc683324df-02';
+const API_KEY = 'd3a09e9efb9856e7eac0ca40bd4b4fc3';
+const RESULT_LIMIT = 20;
+const SEARCH_DELAY_MS = 300;
 
-const Search = (props) => {
+function readStoredVerse() {
+  try {
+    return JSON.parse(window.localStorage.getItem('verse')) || {};
+  } catch (err) {
+    return {};
+  }
+}
+
+function isAbort(err) {
+  return err?.code === 'ERR_CANCELED' || err?.name === 'CanceledError';
+}
+
+function HighlightedVerse({ text, query }) {
+  return highlightParts(text, query).map((part, index) => (
+    part.match
+      ? (
+        <Box
+          key={index}
+          component="mark"
+          sx={{
+            px: '2px',
+            borderRadius: '2px',
+            backgroundColor: '#fef08a',
+            color: 'inherit',
+          }}
+        >
+          {part.text}
+        </Box>
+      )
+      : <React.Fragment key={index}>{part.text}</React.Fragment>
+  ));
+}
+
+const Search = () => {
   const dispatch = useDispatch();
-  const [verse, setVerse] = useState(() => {
-        return JSON.parse(window.localStorage.getItem("verse")) || {}
-  });
+  const [verse, setVerse] = useState(readStoredVerse);
   const [search, setSearch] = useState('');
   const [results, setResults] = useState([]);
+  const [total, setTotal] = useState(0);
+  const [status, setStatus] = useState('idle');
 
-  const handleSearchChange = (e) => {
-    setSearch(e.target.value);
-  }
+  const handleVerse = (result) => {
+    const next = {
+      id: result.reference,
+      bibleId: result.bibleId,
+      content: result.text,
+    };
+    dispatch(setGlobalVerse(next));
+    setVerse(next);
+    dispatch(close());
+    history.push('/study');
+  };
 
-  const fetchVerses = async (searchterm) => {
-      // url: "https://api.scripture.api.bible/v1/bibles/de4e12af7f28f599-01/verses/JHN.3.16?include-verse-spans=false&include-verse-numbers=false&include-chapter-numbers=false&content-type=text",
-    if(searchterm !== ""){
-      axios({
-          url: `https://api.scripture.api.bible/v1/bibles/72f4e6dc683324df-02/search?query=${searchterm}&limit=1000&sort=relevance&range=gen.1.1-rev.22.21`,
-          method: "GET",
-          headers: {
-              "api-key": "d3a09e9efb9856e7eac0ca40bd4b4fc3"
-          }
-      })
-      .then((res) => {
-          if(res.data.data.verses){
-            setResults(res.data.data.verses)
-          }
-          if(res.data.data.passages){
-            setResults(res.data.data.passages.map((p) => {
-              return {
-                id: p.id,
-                text: p.content,
-                bibleId: p.bibleId
-              }
-            }))
-          }
-      })
-      .catch((err) => {
-          console.log(err)
-          setResults([])
-      });
+  useEffect(() => {
+    const term = search.trim();
+    if (term.length < 2) {
+      setResults([]);
+      setTotal(0);
+      setStatus('idle');
+      return undefined;
     }
-  }
 
-  const handleVerse = (verse) => {
-    dispatch(setGlobalVerse(verse));
-    setVerse(verse);
-    dispatch(close())
-  }
+    const controller = new AbortController();
+    const timer = setTimeout(() => {
+      setStatus('loading');
+      axios.get(
+        `https://api.scripture.api.bible/v1/bibles/${BIBLE_ID}/search`,
+        {
+          params: { query: term, limit: RESULT_LIMIT, sort: 'relevance' },
+          headers: { 'api-key': API_KEY },
+          signal: controller.signal,
+        }
+      )
+        .then((res) => {
+          const normalized = normalizeSearchResults(res.data?.data);
+          setResults(normalized.results);
+          setTotal(normalized.total);
+          setStatus('ready');
+        })
+        .catch((err) => {
+          if (isAbort(err)) return;
+          setResults([]);
+          setTotal(0);
+          setStatus('error');
+        });
+    }, SEARCH_DELAY_MS);
+
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [search]);
 
   useEffect(() => {
-    fetchVerses(search)
-  }, [search])
+    window.localStorage.setItem('verse', JSON.stringify(verse));
+  }, [verse]);
 
-  useEffect(() => {
-    window.localStorage.setItem("verse", JSON.stringify(verse))
-
-  }, [verse])
+  const summary = resultSummary(results.length, total);
+  let message = '';
+  if (status === 'loading' && results.length === 0) message = 'Searching…';
+  else if (status === 'error') message = 'Search failed. Check the connection and try again.';
+  else if (status === 'ready' && results.length === 0) message = `No verses matched “${search.trim()}”.`;
+  else if (search.trim().length < 2) message = 'Search a word, a phrase, or a reference like John 3:16.';
 
   return (
-  <>
-        <Button
-          id="qsSearchBtn"
-          color="primary"
-          className="btn-margin"
-          onClick={() => {dispatch(close())}}
-        >
-          X
-        </Button>
-        <FormControl>
-            <InputLabel htmlFor="search-field">Search</InputLabel>
-            <Input id="search-field" aria-describedby="search-help" value={search} onChange={handleSearchChange}/>
-            <FormHelperText id="search-help">Search for a scripture</FormHelperText>
-            <div>
-              {
-                results.map((result) => {
-                  return <p key={result.id} onClick={() => {
-                    handleVerse({id: result.id, bibleId: result.bibleId, content: result.text})
-                }}>{result.text}</p>;
-                })
-              }
-            </div>
-        </FormControl>
-  </>
-  )
-}
+    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', bgcolor: '#f7f6f3' }}>
+      <Box sx={{
+        px: 2,
+        py: 2,
+        bgcolor: 'background.paper',
+        borderBottom: '1px solid',
+        borderColor: 'divider',
+      }}>
+        <Box sx={{ maxWidth: 720, mx: 'auto', display: 'flex', gap: 1, alignItems: 'flex-start' }}>
+          <TextField
+            id="search-field"
+            label="Search scripture"
+            placeholder="love, or John 3:16"
+            fullWidth
+            autoFocus
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+          />
+          <Button
+            id="closeSearchBtn"
+            variant="outlined"
+            onClick={() => dispatch(close())}
+            sx={{ mt: 1, flexShrink: 0 }}
+          >
+            Close
+          </Button>
+        </Box>
+      </Box>
+
+      <Box sx={{ flex: 1, overflow: 'auto' }}>
+        <Box sx={{ maxWidth: 720, mx: 'auto', px: 2, py: 2 }}>
+          {summary && (
+            <Typography variant="body2" sx={{ color: 'text.secondary', mb: 1.5 }}>
+              {status === 'loading' ? 'Searching…' : summary}
+            </Typography>
+          )}
+          {message && (
+            <Typography variant="body1" role={status === 'error' ? 'alert' : undefined} sx={{ color: 'text.secondary' }}>
+              {message}
+            </Typography>
+          )}
+          <Box component="ul" sx={{ listStyle: 'none', p: 0, m: 0 }}>
+            {results.map((result) => (
+              <Box component="li" key={result.id} sx={{ mb: 1.5 }}>
+                <Box
+                  component="button"
+                  type="button"
+                  onClick={() => handleVerse(result)}
+                  sx={{
+                    display: 'block',
+                    width: '100%',
+                    textAlign: 'left',
+                    cursor: 'pointer',
+                    p: 2,
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    borderLeftWidth: 4,
+                    borderLeftColor: 'primary.main',
+                    borderRadius: 2,
+                    bgcolor: 'background.paper',
+                    color: 'text.primary',
+                    font: 'inherit',
+                    '&:hover': { borderColor: 'primary.main', bgcolor: '#f8fafc' },
+                    '&:focus-visible': { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: 2 },
+                  }}
+                >
+                  <Typography component="span" sx={{ display: 'block', fontWeight: 700, color: 'primary.main', mb: 0.5 }}>
+                    {result.reference}
+                  </Typography>
+                  <Typography
+                    component="span"
+                    sx={{
+                      display: '-webkit-box',
+                      WebkitLineClamp: 5,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden',
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    <HighlightedVerse text={snippetAroundMatch(result.text, search)} query={search} />
+                  </Typography>
+                </Box>
+              </Box>
+            ))}
+          </Box>
+        </Box>
+      </Box>
+    </Box>
+  );
+};
 
 export default Search;
