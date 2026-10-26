@@ -17,23 +17,62 @@ if (iosMatch) {
 }
 
 let transcriber = null;
+let queue = Promise.resolve();
 
-self.addEventListener('message', async (e) => {
-  if (e.data.type === 'load') {
-    try {
-      transcriber = await pipeline('automatic-speech-recognition', 'Xenova/whisper-tiny', {
-        progress_callback: (p) => self.postMessage({ type: 'loading', progress: p }),
-      });
-      self.postMessage({ type: 'ready' });
-    } catch (err) {
-      self.postMessage({ type: 'error', message: err.message });
-    }
-  } else if (e.data.type === 'transcribe') {
-    try {
-      const result = await transcriber(e.data.audio, { sampling_rate: e.data.sampling_rate || 16000, language: 'english', task: 'transcribe' });
-      self.postMessage({ type: 'transcript', text: result.text.trim() });
-    } catch (err) {
-      self.postMessage({ type: 'error', message: err.message });
-    }
+function enqueue(task) {
+  const run = queue.then(task, task);
+  queue = run.then(() => {}, () => {});
+  return run;
+}
+
+self.addEventListener('message', (event) => {
+  const data = event.data;
+  if (data.type === 'load') {
+    enqueue(async () => {
+      if (transcriber) {
+        self.postMessage({ type: 'ready' });
+        return;
+      }
+      try {
+        // English-only checkpoint. Passing language or task throws for this model.
+        transcriber = await pipeline(
+          'automatic-speech-recognition',
+          'Xenova/whisper-tiny.en',
+          {
+            progress_callback: (progress) => self.postMessage({ type: 'loading', progress }),
+          }
+        );
+        self.postMessage({ type: 'ready' });
+      } catch (err) {
+        self.postMessage({ type: 'error', message: err.message });
+      }
+    });
+    return;
+  }
+
+  if (data.type === 'transcribe') {
+    const { audio, sampling_rate, epoch } = data;
+    enqueue(async () => {
+      if (!transcriber) {
+        self.postMessage({ type: 'error', message: 'Speech model is not loaded', epoch });
+        return;
+      }
+      try {
+        const result = await transcriber(audio, {
+          sampling_rate: sampling_rate || 16000,
+          // Long test recordings are split inside the model. Short practice
+          // windows still fit in a single chunk.
+          chunk_length_s: 30,
+          stride_length_s: 5,
+        });
+        self.postMessage({
+          type: 'transcript',
+          text: (result.text || '').trim(),
+          epoch,
+        });
+      } catch (err) {
+        self.postMessage({ type: 'error', message: err.message, epoch });
+      }
+    });
   }
 });
