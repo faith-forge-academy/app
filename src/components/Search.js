@@ -14,9 +14,7 @@ import {
   resultSummary,
   snippetAroundMatch,
 } from '../utils/scriptureSearch';
-
-const BIBLE_ID = '72f4e6dc683324df-02';
-const API_KEY = 'd3a09e9efb9856e7eac0ca40bd4b4fc3';
+import { API_BASE, API_KEY, BIBLE_COPYRIGHT, BIBLE_ID } from '../utils/bibleSource';
 const RESULT_LIMIT = 20;
 const SEARCH_DELAY_MS = 300;
 
@@ -86,7 +84,7 @@ const Search = () => {
     const timer = setTimeout(() => {
       setStatus('loading');
       axios.get(
-        `https://api.scripture.api.bible/v1/bibles/${BIBLE_ID}/search`,
+        `${API_BASE}/bibles/${BIBLE_ID}/search`,
         {
           params: { query: term, limit: RESULT_LIMIT, sort: 'relevance' },
           headers: { 'api-key': API_KEY },
@@ -210,6 +208,11 @@ const Search = () => {
               </Box>
             ))}
           </Box>
+          {(summary || results.length > 0) && (
+            <Typography variant="caption" component="p" sx={{ color: 'text.secondary', mt: 2 }}>
+              {BIBLE_COPYRIGHT}
+            </Typography>
+          )}
         </Box>
       </Box>
     </Box>

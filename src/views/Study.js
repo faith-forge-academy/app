@@ -18,10 +18,11 @@ import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import { useSelector } from "react-redux";
 import { Mic, MicOff, Check, RotateCcw } from "lucide-react"
+import { BIBLE_COPYRIGHT } from "../utils/bibleSource";
 
 const DEFAULT_VERSE = {
   id: "John 3:16",
-  content: "For God so loved the world, that he gave his one and only Son that whoever believes in him shall not perish but have eternal life.",
+  content: "For God so loved the world that he gave his one and only Son, that whoever believes in him shall not perish but have eternal life.",
 };
 
 function readStoredVerse() {
@@ -390,6 +391,9 @@ export default function Study() {
               </div>
           </CustomTabPanel>
       </CardContent>
+      <Typography variant="caption" component="p" sx={{ color: 'text.secondary', px: 2, pb: 1 }}>
+        {BIBLE_COPYRIGHT}
+      </Typography>
       <CardActions className="flex justify-between">
         <Button variant="outlined" onClick={() => setActiveTab(0)}>Back to Reading</Button>
         <Button onClick={() => setActiveTab(activeTab === 0 ? 1 : activeTab === 1 ? 2 : 0)}>

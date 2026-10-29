@@ -7,6 +7,7 @@ import axios from 'axios';
 import Search from '../Search';
 import rootReducer from '../../reducers';
 import history from '../../utils/history';
+import { API_BASE, BIBLE_ID } from '../../utils/bibleSource';
 
 jest.mock('axios', () => ({
   get: jest.fn(),
@@ -62,6 +63,13 @@ describe('Search', () => {
     fireEvent.change(screen.getByLabelText('Search scripture'), { target: { value: 'love' } });
 
     const first = await screen.findByRole('button', { name: /John 12:25/ });
+    expect(axios.get).toHaveBeenCalledWith(
+      `${API_BASE}/bibles/${BIBLE_ID}/search`,
+      expect.objectContaining({
+        params: { query: 'love', limit: 20, sort: 'relevance' },
+        headers: expect.objectContaining({ 'api-key': expect.any(String) }),
+      }),
+    );
     const second = screen.getByRole('button', { name: /John 3:16/ });
     expect(first).toHaveTextContent('He who loves his life will lose it.');
     expect(second).toHaveTextContent('For God so loved the world.');
